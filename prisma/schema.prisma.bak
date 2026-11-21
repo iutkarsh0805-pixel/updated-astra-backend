@@ -1,0 +1,508 @@
+// ASTRA Production-Ready Prisma Schema
+// Phase 2 - Schema Migration Target
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core models
+
+model User {
+  id                String              @id @default(uuid())
+  email             String              @unique
+  name              String
+  phone             String?
+  profileImage      String?
+  dateOfBirth       DateTime?
+  birthTime         String?
+  birthPlace        String?
+  gender            String?
+  isPremium         Boolean             @default(false)
+  role              UserRole            @default(CUSTOMER)
+  emailVerified     Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  passwordCredential PasswordCredential?
+  sessions          Session[]
+  refreshTokens     RefreshToken[]
+  emailVerifications EmailVerification[]
+  passwordResets    PasswordReset[]
+  oauthAccounts     OAuthAccount[]
+  bookings          Booking[]
+  payments          Payment[]
+  notifications     Notification[]
+  reviews           Review[]
+}
+
+model AstrologerProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  bio              String?
+  rating           Float    @default(0)
+  totalConsults    Int      @default(0)
+  verificationStatus VerificationStatus @default(PENDING)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id])
+  services         AstrologerService[]
+  slots            Slot[]
+  consultations    Consultation[]
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  description String
+  image       String
+  price       Float
+  duration    Int      @default(60) // minutes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings      Booking[]
+  payments      Payment[]
+  astrologerServices AstrologerService[]
+}
+
+model AstrologerService {
+  id         String @id @default(uuid())
+  astrologerId String
+  serviceId  String
+  price      Float? // optional override by astrologer
+
+  astrologer AstrologerProfile @relation(fields: [astrologerId], references: [id])
+  service    Service           @relation(fields: [serviceId], references: [id])
+
+  @@unique([astrologerId, serviceId])
+}
+
+model AvailabilityRule {
+  id              String @id @default(uuid())
+  astrologerId    String
+  dayOfWeek       Int    // 0 = Sunday, 6 = Saturday
+  startTime       String // HH:MM format
+  endTime         String   // HH:MM format
+  isActive        Boolean @default(true)
+
+  astrologer AstrologerProfile @relation(fields: [astrologerId], references: [id])
+}
+
+model Slot {
+  id               String   @id @default(uuid())
+  astrologerId     String
+  date             DateTime
+  startTime        String   // HH:MM format
+  endTime          String   // HH:MM format
+  status           SlotStatus @default(AVAILABLE)
+  reservedUntil    DateTime?
+  bookingId        String?
+
+  astrologer AstrologerProfile @relation(fields: [astrologerId], references: [id])
+  booking    Booking?          @relation(fields: [bookingId], references: [id])
+
+  @@index([date, startTime, status])
+  @@unique([astrologerId, date, startTime, endTime])
+}
+
+model Booking {
+  id              String   @id @default(uuid())
+  userId          String
+  serviceId       String
+  slotId          String
+  astrologerId    String?
+  status          BookingStatus @default(PENDING)
+  meetingUrl      String?
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id])
+  service       Service  @relation(fields: [serviceId], references: [id])
+  slot          Slot     @relation(fields: [slotId], references: [id])
+  astrologer    AstrologerProfile? @relation(fields: [astrologerId], references: [id])
+  payment       Payment?
+  events        BookingEvent[]
+  consultation  Consultation?
+  meeting       Meeting?
+}
+
+model BookingEvent {
+  id          String   @id @default(uuid())
+  bookingId   String
+  eventType   BookingEventType
+  status      BookingStatus
+  timestamp   DateTime @default(now())
+  metadata    Json?
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  userId          String
+  serviceId       String
+  bookingId       String?
+  razorpayOrderId String @unique
+  razorpayPaymentId String? @unique
+  amount          Float
+  currency        String   @default("INR")
+  status          PaymentStatus @default(PENDING)
+  refundStatus    RefundStatus @default(NONE)
+  refundAmount    Float?
+  receipt         String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id])
+  service       Service  @relation(fields: [serviceId], references: [id])
+  booking       Booking? @relation(fields: [bookingId], references: [id])
+  refunds       Refund[]
+}
+
+model Refund {
+  id              String   @id @default(uuid())
+  paymentId       String
+  razorpayRefundId String? @unique
+  amount          Float
+  status          RefundStatus @default(PENDING)
+  reason          String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+}
+
+model Meeting {
+  id            String   @id @default(uuid())
+  bookingId     String   @unique
+  googleMeetId  String   @unique
+  conferenceData String?
+  startTime     DateTime
+  endTime       DateTime
+  status        MeetingStatus @default(SCHEDULED)
+  recordingUrl  String?
+  transcriptUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  booking   Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Consultation {
+  id                   String   @id @default(uuid())
+  bookingId            String   @unique
+  type                 String
+  topics               String[] @default([])
+  recommendations      String[] @default([])
+  summary              String?
+  notes                String?
+  durationMinutes      Int      @default(60)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  booking              Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Transcript {
+  id            String   @id @default(uuid())
+  bookingId     String
+  content       String?
+  summary       String?
+  language      String @default("en")
+  wordCount     Int @default(0)
+  status        TranscriptStatus @default(PENDING)
+  audioUrl      String?
+  transcriptUrl String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Report {
+  id            String   @id @default(uuid())
+  bookingId     String   @unique
+  content       String?
+  summary       String?
+  recommendations String[] @default([])
+  insights      String?
+  status        ReportStatus @default(PENDING)
+  aiAnalysis    Json?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Notification {
+  id            String   @id @default(uuid())
+  userId        String
+  type          NotificationType
+  title         String
+  message       String
+  data          Json?
+  isRead        Boolean   @default(false)
+  channel       NotificationChannel @default(EMAIL)
+
+  createdAt     DateTime @default(now())
+  readAt        DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id            String   @id @default(uuid())
+  userId        String
+  astrologerId  String
+  bookingId     String?
+  rating        Int      @default(5)
+  comment       String?
+  status        ReviewStatus @default(PENDING)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user       User   @relation(fields: [userId], references: [id])
+  astrologer AstrologerProfile @relation(fields: [astrologerId], references: [id])
+  booking    Booking? @relation(fields: [bookingId], references: [id])
+}
+
+// Authentication models
+
+model PasswordCredential {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  passwordHash String
+  passwordSalt String?
+  resetAt     DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  tokenHash   String   @unique
+  ipAddress   String?
+  userAgent   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  revokedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, expiresAt])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  tokenHash   String   @unique
+  revoked     Boolean  @default(false)
+  revokedAt   DateTime?
+  replacedBy  String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, expiresAt])
+}
+
+model EmailVerification {
+  id          String   @id @default(uuid())
+  userId      String
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PasswordReset {
+  id          String   @id @default(uuid())
+  userId      String
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model LoginAttempt {
+  id          String   @id @default(uuid())
+  userId      String?
+  email       String?
+  ipAddress   String?
+  userAgent   String?
+  success     Boolean
+  createdAt   DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([userId, createdAt])
+}
+
+model OAuthAccount {
+  id          String   @id @default(uuid())
+  userId      String
+  provider    OAuthProvider
+  providerAccountId String
+  accessToken String?
+  refreshToken String?
+  refreshTokenExpiresAt DateTime?
+  tokenType   String?
+  scope       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// Notification Templates
+model NotificationTemplate {
+  id       String   @id @default(uuid())
+  type     NotificationType @unique
+  subject  String
+  bodyTemplate String
+  channel  NotificationChannel @default(EMAIL)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// System Settings
+model SystemSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Enums
+
+enum UserRole {
+  CUSTOMER
+  ASTROLOGER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum SlotStatus {
+  AVAILABLE
+  RESERVED
+  BOOKED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingEventType {
+  STATUS_CHANGED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  MEETING_SCHEDULED
+  MEETING_STARTED
+  MEETING_ENDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum RefundStatus {
+  NONE
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  STARTED
+  ENDED
+  CANCELLED
+}
+
+enum TranscriptStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  REMINDER
+  SYSTEM
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OAuthProvider {
+  GOOGLE
+  GOOGLE_OAUTH2
+  APPLE
+  FACEBOOK
+}
