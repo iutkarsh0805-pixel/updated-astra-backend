@@ -100,41 +100,51 @@ export const verifyPaymentWebhook = async (req, res, next) => {
 
 async function handlePaymentCaptured(payment) {
   const paymentRecord = await prisma.payment.findFirst({
-    where: { razorpayPaymentId: payment.id }
+    where: {
+      OR: [
+        { razorpayPaymentId: payment.id },
+        { razorpayOrderId: payment.order_id }
+      ]
+    }
   });
 
-  if (paymentRecord) {
-    await prisma.payment.update({
+  if (!paymentRecord) {
+    logger.warn('Captured payment record not found', { paymentId: payment.id, orderId: payment.order_id });
+    return;
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.payment.update({
       where: { id: paymentRecord.id },
-      data: {
-        status: 'SUCCESS',
-        razorpayPaymentId: payment.id,
-        updatedAt: new Date()
-      }
+      data: { status: 'SUCCESS', razorpayPaymentId: payment.id }
     });
 
-    // Update booking status
-    await prisma.booking.update({
+    await tx.booking.update({
       where: { id: paymentRecord.bookingId },
       data: { status: 'CONFIRMED' }
     });
-  }
+  });
 }
 
 async function handlePaymentFailed(payment) {
   const paymentRecord = await prisma.payment.findFirst({
-    where: { razorpayPaymentId: payment.id }
+    where: {
+      OR: [
+        { razorpayPaymentId: payment.id },
+        { razorpayOrderId: payment.order_id }
+      ]
+    }
   });
 
-  if (paymentRecord) {
-    await prisma.payment.update({
-      where: { id: paymentRecord.id },
-      data: {
-        status: 'FAILED',
-        updatedAt: new Date()
-      }
-    });
+  if (!paymentRecord) {
+    logger.warn('Failed payment record not found', { paymentId: payment.id, orderId: payment.order_id });
+    return;
   }
+
+  await prisma.payment.update({
+    where: { id: paymentRecord.id },
+    data: { status: 'FAILED', razorpayPaymentId: payment.id }
+  });
 }
 
 async function handleRefundProcessed(refund) {
@@ -228,9 +238,13 @@ export const refundPaymentHandler = async (req, res, next) => {
       where: { userId }
     });
 
+    const paymentBooking = payment.bookingId
+      ? await prisma.booking.findUnique({ where: { id: payment.bookingId } })
+      : null;
+
     if (
       payment.userId !== userId &&
-      (!astrologer || payment.bookingId !== astrologer.id)
+      (!astrologer || !paymentBooking || paymentBooking.astrologerId !== astrologer.id)
     ) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }

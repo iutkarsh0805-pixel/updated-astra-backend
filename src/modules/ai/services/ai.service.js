@@ -2,6 +2,7 @@
 // This module provides AI-powered features for the Astra astrology platform
 
 import { logger } from '../../../lib/logger.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Configuration
 const AI_CONFIG = {
@@ -11,6 +12,13 @@ const AI_CONFIG = {
   sentimentAnalysis: true,
   insightsGeneration: true
 };
+
+// Gemini AI initialization
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const gemini = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+const geminiModel = gemini
+  ? gemini.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  : null;
 
 /**
  * Generate summary from consultation data
@@ -61,31 +69,13 @@ Next Steps:
  * @returns {Promise<Array<string>>} - Array of recommendations
  */
 export const generateRecommendations = async (bookingData) => {
-  if (!AI_CONFIG.recommendationGeneration) {
-    return [];
-  }
+  if (!AI_CONFIG.recommendationGeneration) return [];
 
   try {
-    // Template-based recommendations (replace with AI integration in production)
-    const recommendations = [
-      'Review the consultation notes regularly',
-      'Track any remedies or practices mentioned',
-      'Schedule follow-up consultation in 30 days',
-      'Keep a journal of astrological insights'
-    ];
-
-    // Customize based on service type
-    const serviceType = bookingData.service?.toLowerCase() || 'general';
-
-    if (serviceType.includes('love') || serviceType.includes('relationship')) {
-      recommendations.push('Focus on communication with family and partners');
-    } else if (serviceType.includes('career') || serviceType.includes('business')) {
-      recommendations.push('Consider professional development courses');
-    } else if (serviceType.includes('health')) {
-      recommendations.push('Maintain regular health check-ups');
-    }
-
-    return [...new Set(recommendations)]; // Remove duplicates
+    if (!geminiModel) throw new Error('GEMINI_API_KEY is not configured');
+    const prompt = `Return a JSON array of 3-6 practical astrology consultation recommendations. Base it only on this data: ${JSON.stringify(bookingData)}. Respond only with valid JSON.`;
+    const text = await askGemini(prompt);
+    return JSON.parse(text.replace(/^```json\s*/i, '').replace(/```$/, '').trim());
   } catch (error) {
     logger.error('Error generating recommendations:', error);
     return [];
@@ -98,46 +88,16 @@ export const generateRecommendations = async (bookingData) => {
  * @returns {Promise<Object>} - Sentiment analysis results
  */
 export const analyzeSentiment = async (transcriptContent) => {
-  if (!AI_CONFIG.sentimentAnalysis) {
-    return { sentiment: 'neutral', confidence: 0 };
-  }
+  if (!AI_CONFIG.sentimentAnalysis) return { sentiment: 'neutral', confidence: 0 };
 
   try {
-    // Simple keyword-based sentiment analysis (replace with AI in production)
-    const positiveWords = ['happy', 'excited', 'confident', 'positive', 'good', 'great', 'well'];
-    const negativeWords = ['sad', 'worried', 'stressed', 'difficult', 'bad', 'poor', 'ill'];
-
-    const text = transcriptContent.toLowerCase();
-    let positiveCount = 0;
-    let negativeCount = 0;
-
-    positiveWords.forEach(word => {
-      positiveCount += (text.match(new RegExp(word, 'g')) || []).length;
-    });
-
-    negativeWords.forEach(word => {
-      negativeCount += (text.match(new RegExp(word, 'g')) || []).length;
-    });
-
-    const total = positiveCount + negativeCount;
-    let sentiment = 'neutral';
-    let confidence = 0;
-
-    if (total > 0) {
-      if (positiveCount > negativeCount) {
-        sentiment = 'positive';
-        confidence = positiveCount / total;
-      } else if (negativeCount > positiveCount) {
-        sentiment = 'negative';
-        confidence = negativeCount / total;
-      }
-      confidence = Math.min(confidence, 0.95); // Cap at 95% confidence
-    }
-
-    return { sentiment, confidence, positiveCount, negativeCount };
+    if (!geminiModel) throw new Error('GEMINI_API_KEY is not configured');
+    const prompt = `Analyze sentiment for this transcript. Return only JSON with keys sentiment (positive|neutral|negative), confidence (0-1), positiveCount, and negativeCount. Transcript: ${transcriptContent}`;
+    const text = await askGemini(prompt);
+    return JSON.parse(text.replace(/^```json\s*/i, '').replace(/```$/, '').trim());
   } catch (error) {
     logger.error('Error analyzing sentiment:', error);
-    return { sentiment: 'neutral', confidence: 0, error: 'Analysis failed' };
+    return { sentiment: 'neutral', confidence: 0, positiveCount: 0, negativeCount: 0 };
   }
 };
 
@@ -188,22 +148,12 @@ export const generateInsights = async (bookingData) => {
  * @returns {Promise<string>} - Detected language code
  */
 export const detectLanguage = async (text) => {
-  if (!AI_CONFIG.languageDetection) {
-    return 'en';
-  }
+  if (!AI_CONFIG.languageDetection) return 'en';
 
   try {
-    // Simple detection (replace with proper language detection in production)
-    const hindiPattern = /[ऀ-ॿ]/;
-    const tamilPattern = /[஀-௿]/;
-    const teluguPattern = /[ఀ-౿]/;
-    const marathiPattern = /[र-य़]/;
-
-    if (hindiPattern.test(text) || marathiPattern.test(text)) return 'hi';
-    if (tamilPattern.test(text)) return 'ta';
-    if (teluguPattern.test(text)) return 'te';
-
-    return 'en';
+    if (!geminiModel) throw new Error('GEMINI_API_KEY is not configured');
+    const prompt = `Return only a two-letter ISO 639-1 language code for this text. Text: ${text}`;
+    return (await askGemini(prompt)).toLowerCase().slice(0, 2);
   } catch (error) {
     logger.error('Error detecting language:', error);
     return 'en';
@@ -217,11 +167,27 @@ export const detectLanguage = async (text) => {
  * @returns {Promise<string>} - Translated text
  */
 export const translateText = async (text, targetLang = 'en') => {
-  // Placeholder - integrate with translation API in production
-  if (targetLang === 'en') return text;
+  try {
+    if (!geminiModel) throw new Error('GEMINI_API_KEY is not configured');
+    const prompt = `Translate the following text into ${targetLang}. Preserve meaning and formatting. Return only the translation:\n${text}`;
+    return await askGemini(prompt);
+  } catch (error) {
+    logger.error('Error translating text:', error);
+    return text;
+  }
+};
 
-  logger.warn(`Translation to ${targetLang} not implemented - returning original text`);
-  return text;
+/**
+ * Ask Gemini AI
+ * @param {string} prompt - Prompt for Gemini AI
+ * @returns {Promise<string>} - Gemini AI response
+ */
+const askGemini = async (prompt) => {
+  if (!geminiModel) {
+    throw new Error('GEMINI_API_KEY is not configured');
+  }
+  const result = await geminiModel.generateContent(prompt);
+  return result.response.text().trim();
 };
 
 export default {
@@ -230,5 +196,6 @@ export default {
   analyzeSentiment,
   generateInsights,
   detectLanguage,
-  translateText
+  translateText,
+  askGemini
 };

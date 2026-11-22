@@ -117,9 +117,11 @@ export const createMeeting = async (bookingId, userId) => {
   }
 
   try {
-    const auth = oauth2Client || new google.auth.GoogleAuth({
-      apiKey: GOOGLE_MEET_API_KEY
-    });
+    if (!oauth2Client) {
+      throw new Error('Google OAuth is not connected');
+    }
+
+    const auth = oauth2Client;
 
     const calendar = google.calendar({ version: 'v3', auth });
 
@@ -127,17 +129,14 @@ export const createMeeting = async (bookingId, userId) => {
     const astrologerName = booking.astrologer.user.name;
     const customerName = booking.user.name;
 
+    const startTime = new Date(`${slot.date.toISOString().split('T')[0]}T${slot.startTime}:00+05:30`);
+    const endTime = new Date(`${slot.date.toISOString().split('T')[0]}T${slot.endTime}:00+05:30`);
+
     const event = {
       summary: `Astrology Consultation - ${customerName} with ${astrologerName}`,
-      description: `Astrology consultation booking #${bookingId}\n\nAstronaut: ${astrologerName}\nCustomer: ${customerName}`,
-      start: {
-        dateTime: new Date(slot.date).toISOString().split('T')[0] + 'T' + slot.startTime + ':00',
-        timeZone: 'Asia/Kolkata'
-      },
-      end: {
-        dateTime: new Date(slot.date).toISOString().split('T')[0] + 'T' + slot.endTime + ':00',
-        timeZone: 'Asia/Kolkata'
-      },
+      description: `Astrology consultation booking #${bookingId}\nCustomer: ${customerName}\nAstrologer: ${astrologerName}`,
+      start: { dateTime: startTime.toISOString(), timeZone: 'Asia/Kolkata' },
+      end: { dateTime: endTime.toISOString(), timeZone: 'Asia/Kolkata' },
       attendees: [
         { email: booking.user.email },
         { email: booking.astrologer.user.email }
@@ -235,8 +234,7 @@ export const updateMeeting = async (meetingId, userId, data) => {
   return await prisma.meeting.update({
     where: { id: meetingId },
     data: {
-      status: data.status || meeting.status,
-      notes: data.notes
+      status: data.status || meeting.status
     }
   });
 };

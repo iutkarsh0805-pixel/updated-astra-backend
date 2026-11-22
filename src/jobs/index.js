@@ -10,10 +10,21 @@ let pgBoss = null;
 
 export const getPgBoss = () => {
   if (!pgBoss) {
+    const connectionString = process.env.DATABASE_URL;
     pgBoss = new PgBoss({
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
       maxConcurrentWorkers: 5,
-      maxActiveWorkers: 10
+      maxActiveWorkers: 10,
+      archiveCompletedAfterSeconds: 60 * 60,
+      deleteAfterSeconds: 7 * 24 * 60 * 60,
+      retryLimit: 5,
+      retryDelay: 10,
+      retryBackoff: true,
+      monitorStateIntervalSeconds: 30
+    });
+
+    pgBoss.on('error', (error) => {
+      logger.error('PgBoss database connection error', { error: error.message });
     });
   }
   return pgBoss;

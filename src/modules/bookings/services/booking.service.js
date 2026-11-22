@@ -275,7 +275,7 @@ export const rescheduleBooking = async (bookingId, newSlotId, userId) => {
       slotId: newSlotId,
       astrologerId: newSlot.astrologerId,
       status: 'PENDING',
-      isRescheduled: true
+      notes: booking.notes
     }
   });
 

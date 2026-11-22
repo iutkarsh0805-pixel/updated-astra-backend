@@ -1,6 +1,8 @@
 // Transcript Service
 import { prisma } from '../../../lib/prisma.js';
 import { logger } from '../../../lib/logger.js';
+import fs from 'node:fs/promises';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Get transcript for a meeting
 export const getTranscriptByMeeting = async (meetingId, userId, role) => {
@@ -198,4 +200,25 @@ export const getTranscriptContent = async (transcriptId, userId, role) => {
   }
 
   return transcript;
+};
+
+// Gemini audio transcription helper for remote or base64 meeting audio
+export const transcribeAudioFile = async (filePath, language = 'en') => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY is not configured');
+
+  const data = await fs.readFile(filePath);
+  const mimeType = filePath.toLowerCase().endsWith('.mp3') ? 'audio/mpeg'
+    : filePath.toLowerCase().endsWith('.wav') ? 'audio/wav'
+    : filePath.toLowerCase().endsWith('.m4a') ? 'audio/mp4'
+    : 'audio/mp4';
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const result = await model.generateContent([
+    { text: `Transcribe this audio exactly, in language ${language}. Return only the transcript.` },
+    { inlineData: { data: data.toString('base64'), mimeType } }
+  ]);
+
+  return result.response.text().trim();
 };
