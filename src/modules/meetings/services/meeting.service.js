@@ -67,7 +67,7 @@ export const getOAuthClientForUser = async (userId) => {
 };
 
 // Generate Google OAuth URL
-export const getGoogleAuthUrl = (userId) => {
+export const getGoogleAuthUrl = async (userId) => {
   const oauth2Client = new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -80,11 +80,13 @@ export const getGoogleAuthUrl = (userId) => {
     'https://www.googleapis.com/auth/userinfo.email'
   ];
 
+  const state = await createGoogleOAuthState(userId);
+
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
     prompt: 'consent',
-    state: createGoogleOAuthState(userId)
+    state
   });
 };
 
@@ -352,19 +354,95 @@ export const scheduleReminders = async (meetingId) => {
 };
 
 // Create and verify Google OAuth state
-export const createGoogleOAuthState = (userId) => {
-  const payload = Buffer.from(JSON.stringify({ userId, exp: Date.now() + 10 * 60 * 1000 })).toString('base64url');
+export const createGoogleOAuthState = async (userId) => {
+  const nonce = crypto.randomBytes(32).toString('base64url');
+  const nonceHash = crypto.createHash('sha256').update(nonce).digest('hex');
+  const exp = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  const payload = Buffer.from(JSON.stringify({ userId, nonce, exp })).toString('base64url');
   const signature = crypto.createHmac('sha256', JWT_SECRET).update(payload).digest('base64url');
-  return `${payload}.${signature}`;
+  const state = `${payload}.${signature}`;
+
+  await prisma.oAuthState.create({
+    data: {
+      userId,
+      nonceHash,
+      expiresAt: new Date(exp)
+    }
+  });
+
+  return state;
 };
 
-export const verifyGoogleOAuthState = (state) => {
+export const verifyGoogleOAuthState = async (state) => {
   if (!state) throw new Error('Missing OAuth state');
-  const [payload, signature] = state.split('.');
-  const expected = crypto.createHmac('sha256', JWT_SECRET).update(payload).digest('base64url');
-  if (signature !== expected) throw new Error('Invalid OAuth state');
 
-  const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-  if (data.exp < Date.now()) throw new Error('OAuth state expired');
-  return data.userId;
+  const parts = state.split('.');
+  if (parts.length !== 2) throw new Error('Invalid OAuth state format');
+
+  const [payload, signature] = parts;
+
+  // Validate payload base64url format
+  if (!/^[A-Za-z0-9_-]+$/.test(payload)) throw new Error('Invalid OAuth state payload');
+
+  // Timing-safe comparison
+  const expectedSignal = crypto.createHmac('sha256', JWT_SECRET).update(payload).digest('base64url');
+  const sigBuf = Buffer.from(signature);
+  const expectedBuf = Buffer.from(expectedSignal);
+  let isValidSig = false;
+  try {
+    isValidSig = sigBuf.length === expectedBuf.length && crypto.timingSafeEqual(sigBuf, expectedBuf);
+  } catch {
+    isValidSig = false;
+  }
+  if (!isValidSig) {
+    throw new Error('Invalid OAuth state signature');
+  }
+
+  // Parse and validate payload
+  let data;
+  try {
+    data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+  } catch {
+    throw new Error('Invalid OAuth state payload');
+  }
+
+  // Strict payload validation: exactly userId, nonce, exp; no arrays, no extra keys
+  const keys = Object.keys(data);
+  if (keys.length !== 3) throw new Error('Invalid OAuth state payload');
+  if (!keys.includes('userId') || !keys.includes('nonce') || !keys.includes('exp')) {
+    throw new Error('Invalid OAuth state payload');
+  }
+  if (typeof data.userId !== 'string' || typeof data.nonce !== 'string' || typeof data.exp !== 'number') {
+    throw new Error('Invalid OAuth state payload');
+  }
+  if (typeof data.exp !== 'number' || !Number.isFinite(data.exp) || data.exp <= 0) {
+    throw new Error('Invalid OAuth state payload');
+  }
+
+  const { userId, nonce, exp } = data;
+
+  // Check expiration
+  if (exp < Date.now()) throw new Error('OAuth state expired');
+
+  // Hash the nonce for database lookup
+  const nonceHash = crypto.createHash('sha256').update(nonce).digest('hex');
+
+  // Atomic one-time consumption: delete and verify in one transaction
+  const result = await prisma.$transaction(async (tx) => {
+    const deleted = await tx.oAuthState.deleteMany({
+      where: {
+        userId,
+        nonceHash,
+        expiresAt: { gt: new Date() }
+      }
+    });
+    return deleted.count;
+  });
+
+  if (result !== 1) {
+    throw new Error('OAuth state already used or invalid');
+  }
+
+  return userId;
 };

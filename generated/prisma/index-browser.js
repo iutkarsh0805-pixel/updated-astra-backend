@@ -414,6 +414,14 @@ exports.Prisma.OAuthAccountScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.OAuthStateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  nonceHash: 'nonceHash',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+};
+
 exports.Prisma.NotificationTemplateScalarFieldEnum = {
   id: 'id',
   type: 'type',
@@ -600,6 +608,7 @@ exports.Prisma.ModelName = {
   PasswordReset: 'PasswordReset',
   LoginAttempt: 'LoginAttempt',
   OAuthAccount: 'OAuthAccount',
+  OAuthState: 'OAuthState',
   NotificationTemplate: 'NotificationTemplate',
   SystemSettings: 'SystemSettings',
   WebhookEvent: 'WebhookEvent'

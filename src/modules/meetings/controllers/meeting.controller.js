@@ -109,7 +109,7 @@ export const googleOAuthCallbackController = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Authorization code is required' });
     }
 
-    const userId = verifyGoogleOAuthState(state);
+    const userId = await verifyGoogleOAuthState(state);
     const result = await exchangeGoogleAuthCode(code);
     await storeGoogleOAuthAccount(userId, result);
 

@@ -110,6 +110,21 @@ export const initializeJobs = async () => {
     }
   });
 
+  // Job: Cleanup expired OAuth states
+  boss.work('cleanupOAuthStates', async (job) => {
+    logger.info('Cleaning up expired OAuth states');
+
+    const result = await prisma.oAuthState.deleteMany({
+      where: {
+        expiresAt: { lt: new Date() }
+      }
+    });
+
+    if (result.count > 0) {
+      logger.info('Cleaned up expired OAuth states', { count: result.count });
+    }
+  });
+
   await boss.start();
   jobsStarted = true;
   logger.info('Job workers initialized');
@@ -146,4 +161,10 @@ export const cancelJobsForBooking = async (bookingId) => {
   for (const job of jobs) {
     await boss.cancel(job.id);
   }
+};
+
+// Schedule OAuth state cleanup (runs hourly)
+export const scheduleOAuthStateCleanup = async () => {
+  const boss = getPgBoss();
+  await boss.schedule('cleanupOAuthStates', '0 * * * *'); // Hourly
 };

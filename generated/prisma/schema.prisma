@@ -36,6 +36,7 @@ model User {
   emailVerifications EmailVerification[]
   passwordResets     PasswordReset[]
   oauthAccounts      OAuthAccount[]
+  oauthStates        OAuthState[]
   bookings           Booking[]
   payments           Payment[]
   notifications      Notification[]
@@ -415,6 +416,18 @@ model OAuthAccount {
 
   @@unique([provider, providerAccountId])
   @@index([userId])
+}
+
+model OAuthState {
+  id        String   @id @default(uuid())
+  userId    String
+  nonceHash String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, expiresAt])
 }
 
 // Notification Templates

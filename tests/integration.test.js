@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import app from '../src/app.js';
+import { prisma } from '../src/lib/prisma.js';
 import { generateSummary } from '../src/modules/ai/services/ai.service.js';
 
 test('seeded customer can login and access profile', async () => {
@@ -42,9 +43,22 @@ test('Gemini summary provider returns text when configured', async () => {
 
 test('Google OAuth state is signed and bound to the initiating user', async () => {
   const { createGoogleOAuthState, verifyGoogleOAuthState } = await import('../src/modules/meetings/services/meeting.service.js');
-  const state = createGoogleOAuthState('user-test-id');
-  assert.equal(verifyGoogleOAuthState(state), 'user-test-id');
-  assert.throws(() => verifyGoogleOAuthState(`${state}tampered`), /Invalid OAuth state/);
+  const testUserId = 'user-test-id-' + Date.now();
+  await prisma.user.create({
+    data: { id: testUserId, email: `oauth-test-${Date.now()}@example.com`, name: 'OAuth Test User' }
+  });
+  try {
+    const state = await createGoogleOAuthState(testUserId);
+    const verifiedId = await verifyGoogleOAuthState(state);
+    assert.equal(verifiedId, testUserId);
+    await assert.rejects(
+      async () => await verifyGoogleOAuthState(`${state}tampered`),
+      /Invalid OAuth state/
+    );
+  } finally {
+    await prisma.oAuthState.deleteMany({ where: { userId: testUserId } });
+    await prisma.user.delete({ where: { id: testUserId } }).catch(() => {});
+  }
 });
 
 test('signed Razorpay webhook retries are idempotent', async () => {

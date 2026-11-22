@@ -134,6 +134,11 @@ export type LoginAttempt = $Result.DefaultSelection<Prisma.$LoginAttemptPayload>
  */
 export type OAuthAccount = $Result.DefaultSelection<Prisma.$OAuthAccountPayload>
 /**
+ * Model OAuthState
+ * 
+ */
+export type OAuthState = $Result.DefaultSelection<Prisma.$OAuthStatePayload>
+/**
  * Model NotificationTemplate
  * 
  */
@@ -722,6 +727,16 @@ export class PrismaClient<
   get oAuthAccount(): Prisma.OAuthAccountDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.oAuthState`: Exposes CRUD operations for the **OAuthState** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OAuthStates
+    * const oAuthStates = await prisma.oAuthState.findMany()
+    * ```
+    */
+  get oAuthState(): Prisma.OAuthStateDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.notificationTemplate`: Exposes CRUD operations for the **NotificationTemplate** model.
     * Example usage:
     * ```ts
@@ -1221,6 +1236,7 @@ export namespace Prisma {
     PasswordReset: 'PasswordReset',
     LoginAttempt: 'LoginAttempt',
     OAuthAccount: 'OAuthAccount',
+    OAuthState: 'OAuthState',
     NotificationTemplate: 'NotificationTemplate',
     SystemSettings: 'SystemSettings',
     WebhookEvent: 'WebhookEvent'
@@ -1239,7 +1255,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "astrologerProfile" | "service" | "astrologerService" | "availabilityRule" | "slot" | "booking" | "bookingEvent" | "payment" | "refund" | "meeting" | "consultation" | "transcript" | "report" | "notification" | "review" | "consultationType" | "passwordCredential" | "session" | "refreshToken" | "emailVerification" | "passwordReset" | "loginAttempt" | "oAuthAccount" | "notificationTemplate" | "systemSettings" | "webhookEvent"
+      modelProps: "user" | "astrologerProfile" | "service" | "astrologerService" | "availabilityRule" | "slot" | "booking" | "bookingEvent" | "payment" | "refund" | "meeting" | "consultation" | "transcript" | "report" | "notification" | "review" | "consultationType" | "passwordCredential" | "session" | "refreshToken" | "emailVerification" | "passwordReset" | "loginAttempt" | "oAuthAccount" | "oAuthState" | "notificationTemplate" | "systemSettings" | "webhookEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3019,6 +3035,80 @@ export namespace Prisma {
           }
         }
       }
+      OAuthState: {
+        payload: Prisma.$OAuthStatePayload<ExtArgs>
+        fields: Prisma.OAuthStateFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OAuthStateFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OAuthStateFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>
+          }
+          findFirst: {
+            args: Prisma.OAuthStateFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OAuthStateFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>
+          }
+          findMany: {
+            args: Prisma.OAuthStateFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>[]
+          }
+          create: {
+            args: Prisma.OAuthStateCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>
+          }
+          createMany: {
+            args: Prisma.OAuthStateCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OAuthStateCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>[]
+          }
+          delete: {
+            args: Prisma.OAuthStateDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>
+          }
+          update: {
+            args: Prisma.OAuthStateUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>
+          }
+          deleteMany: {
+            args: Prisma.OAuthStateDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OAuthStateUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.OAuthStateUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>[]
+          }
+          upsert: {
+            args: Prisma.OAuthStateUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OAuthStatePayload>
+          }
+          aggregate: {
+            args: Prisma.OAuthStateAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOAuthState>
+          }
+          groupBy: {
+            args: Prisma.OAuthStateGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OAuthStateGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OAuthStateCountArgs<ExtArgs>
+            result: $Utils.Optional<OAuthStateCountAggregateOutputType> | number
+          }
+        }
+      }
       NotificationTemplate: {
         payload: Prisma.$NotificationTemplatePayload<ExtArgs>
         fields: Prisma.NotificationTemplateFieldRefs
@@ -3388,6 +3478,7 @@ export namespace Prisma {
     passwordReset?: PasswordResetOmit
     loginAttempt?: LoginAttemptOmit
     oAuthAccount?: OAuthAccountOmit
+    oAuthState?: OAuthStateOmit
     notificationTemplate?: NotificationTemplateOmit
     systemSettings?: SystemSettingsOmit
     webhookEvent?: WebhookEventOmit
@@ -3476,6 +3567,7 @@ export namespace Prisma {
     emailVerifications: number
     passwordResets: number
     oauthAccounts: number
+    oauthStates: number
     bookings: number
     payments: number
     notifications: number
@@ -3488,6 +3580,7 @@ export namespace Prisma {
     emailVerifications?: boolean | UserCountOutputTypeCountEmailVerificationsArgs
     passwordResets?: boolean | UserCountOutputTypeCountPasswordResetsArgs
     oauthAccounts?: boolean | UserCountOutputTypeCountOauthAccountsArgs
+    oauthStates?: boolean | UserCountOutputTypeCountOauthStatesArgs
     bookings?: boolean | UserCountOutputTypeCountBookingsArgs
     payments?: boolean | UserCountOutputTypeCountPaymentsArgs
     notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
@@ -3538,6 +3631,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountOauthAccountsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OAuthAccountWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountOauthStatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OAuthStateWhereInput
   }
 
   /**
@@ -4068,6 +4168,7 @@ export namespace Prisma {
     emailVerifications?: boolean | User$emailVerificationsArgs<ExtArgs>
     passwordResets?: boolean | User$passwordResetsArgs<ExtArgs>
     oauthAccounts?: boolean | User$oauthAccountsArgs<ExtArgs>
+    oauthStates?: boolean | User$oauthStatesArgs<ExtArgs>
     bookings?: boolean | User$bookingsArgs<ExtArgs>
     payments?: boolean | User$paymentsArgs<ExtArgs>
     notifications?: boolean | User$notificationsArgs<ExtArgs>
@@ -4138,6 +4239,7 @@ export namespace Prisma {
     emailVerifications?: boolean | User$emailVerificationsArgs<ExtArgs>
     passwordResets?: boolean | User$passwordResetsArgs<ExtArgs>
     oauthAccounts?: boolean | User$oauthAccountsArgs<ExtArgs>
+    oauthStates?: boolean | User$oauthStatesArgs<ExtArgs>
     bookings?: boolean | User$bookingsArgs<ExtArgs>
     payments?: boolean | User$paymentsArgs<ExtArgs>
     notifications?: boolean | User$notificationsArgs<ExtArgs>
@@ -4157,6 +4259,7 @@ export namespace Prisma {
       emailVerifications: Prisma.$EmailVerificationPayload<ExtArgs>[]
       passwordResets: Prisma.$PasswordResetPayload<ExtArgs>[]
       oauthAccounts: Prisma.$OAuthAccountPayload<ExtArgs>[]
+      oauthStates: Prisma.$OAuthStatePayload<ExtArgs>[]
       bookings: Prisma.$BookingPayload<ExtArgs>[]
       payments: Prisma.$PaymentPayload<ExtArgs>[]
       notifications: Prisma.$NotificationPayload<ExtArgs>[]
@@ -4579,6 +4682,7 @@ export namespace Prisma {
     emailVerifications<T extends User$emailVerificationsArgs<ExtArgs> = {}>(args?: Subset<T, User$emailVerificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmailVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     passwordResets<T extends User$passwordResetsArgs<ExtArgs> = {}>(args?: Subset<T, User$passwordResetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordResetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     oauthAccounts<T extends User$oauthAccountsArgs<ExtArgs> = {}>(args?: Subset<T, User$oauthAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OAuthAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    oauthStates<T extends User$oauthStatesArgs<ExtArgs> = {}>(args?: Subset<T, User$oauthStatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     bookings<T extends User$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, User$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     payments<T extends User$paymentsArgs<ExtArgs> = {}>(args?: Subset<T, User$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     notifications<T extends User$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5157,6 +5261,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OAuthAccountScalarFieldEnum | OAuthAccountScalarFieldEnum[]
+  }
+
+  /**
+   * User.oauthStates
+   */
+  export type User$oauthStatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    where?: OAuthStateWhereInput
+    orderBy?: OAuthStateOrderByWithRelationInput | OAuthStateOrderByWithRelationInput[]
+    cursor?: OAuthStateWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: OAuthStateScalarFieldEnum | OAuthStateScalarFieldEnum[]
   }
 
   /**
@@ -31774,6 +31902,1069 @@ export namespace Prisma {
 
 
   /**
+   * Model OAuthState
+   */
+
+  export type AggregateOAuthState = {
+    _count: OAuthStateCountAggregateOutputType | null
+    _min: OAuthStateMinAggregateOutputType | null
+    _max: OAuthStateMaxAggregateOutputType | null
+  }
+
+  export type OAuthStateMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    nonceHash: string | null
+    createdAt: Date | null
+    expiresAt: Date | null
+  }
+
+  export type OAuthStateMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    nonceHash: string | null
+    createdAt: Date | null
+    expiresAt: Date | null
+  }
+
+  export type OAuthStateCountAggregateOutputType = {
+    id: number
+    userId: number
+    nonceHash: number
+    createdAt: number
+    expiresAt: number
+    _all: number
+  }
+
+
+  export type OAuthStateMinAggregateInputType = {
+    id?: true
+    userId?: true
+    nonceHash?: true
+    createdAt?: true
+    expiresAt?: true
+  }
+
+  export type OAuthStateMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    nonceHash?: true
+    createdAt?: true
+    expiresAt?: true
+  }
+
+  export type OAuthStateCountAggregateInputType = {
+    id?: true
+    userId?: true
+    nonceHash?: true
+    createdAt?: true
+    expiresAt?: true
+    _all?: true
+  }
+
+  export type OAuthStateAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OAuthState to aggregate.
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OAuthStates to fetch.
+     */
+    orderBy?: OAuthStateOrderByWithRelationInput | OAuthStateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OAuthStateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OAuthStates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OAuthStates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OAuthStates
+    **/
+    _count?: true | OAuthStateCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OAuthStateMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OAuthStateMaxAggregateInputType
+  }
+
+  export type GetOAuthStateAggregateType<T extends OAuthStateAggregateArgs> = {
+        [P in keyof T & keyof AggregateOAuthState]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOAuthState[P]>
+      : GetScalarType<T[P], AggregateOAuthState[P]>
+  }
+
+
+
+
+  export type OAuthStateGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OAuthStateWhereInput
+    orderBy?: OAuthStateOrderByWithAggregationInput | OAuthStateOrderByWithAggregationInput[]
+    by: OAuthStateScalarFieldEnum[] | OAuthStateScalarFieldEnum
+    having?: OAuthStateScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OAuthStateCountAggregateInputType | true
+    _min?: OAuthStateMinAggregateInputType
+    _max?: OAuthStateMaxAggregateInputType
+  }
+
+  export type OAuthStateGroupByOutputType = {
+    id: string
+    userId: string
+    nonceHash: string
+    createdAt: Date
+    expiresAt: Date
+    _count: OAuthStateCountAggregateOutputType | null
+    _min: OAuthStateMinAggregateOutputType | null
+    _max: OAuthStateMaxAggregateOutputType | null
+  }
+
+  type GetOAuthStateGroupByPayload<T extends OAuthStateGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OAuthStateGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OAuthStateGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OAuthStateGroupByOutputType[P]>
+            : GetScalarType<T[P], OAuthStateGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OAuthStateSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    nonceHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["oAuthState"]>
+
+  export type OAuthStateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    nonceHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["oAuthState"]>
+
+  export type OAuthStateSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    nonceHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["oAuthState"]>
+
+  export type OAuthStateSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    nonceHash?: boolean
+    createdAt?: boolean
+    expiresAt?: boolean
+  }
+
+  export type OAuthStateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "nonceHash" | "createdAt" | "expiresAt", ExtArgs["result"]["oAuthState"]>
+  export type OAuthStateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type OAuthStateIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type OAuthStateIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $OAuthStatePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OAuthState"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      nonceHash: string
+      createdAt: Date
+      expiresAt: Date
+    }, ExtArgs["result"]["oAuthState"]>
+    composites: {}
+  }
+
+  type OAuthStateGetPayload<S extends boolean | null | undefined | OAuthStateDefaultArgs> = $Result.GetResult<Prisma.$OAuthStatePayload, S>
+
+  type OAuthStateCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<OAuthStateFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: OAuthStateCountAggregateInputType | true
+    }
+
+  export interface OAuthStateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OAuthState'], meta: { name: 'OAuthState' } }
+    /**
+     * Find zero or one OAuthState that matches the filter.
+     * @param {OAuthStateFindUniqueArgs} args - Arguments to find a OAuthState
+     * @example
+     * // Get one OAuthState
+     * const oAuthState = await prisma.oAuthState.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OAuthStateFindUniqueArgs>(args: SelectSubset<T, OAuthStateFindUniqueArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one OAuthState that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {OAuthStateFindUniqueOrThrowArgs} args - Arguments to find a OAuthState
+     * @example
+     * // Get one OAuthState
+     * const oAuthState = await prisma.oAuthState.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OAuthStateFindUniqueOrThrowArgs>(args: SelectSubset<T, OAuthStateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OAuthState that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateFindFirstArgs} args - Arguments to find a OAuthState
+     * @example
+     * // Get one OAuthState
+     * const oAuthState = await prisma.oAuthState.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OAuthStateFindFirstArgs>(args?: SelectSubset<T, OAuthStateFindFirstArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first OAuthState that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateFindFirstOrThrowArgs} args - Arguments to find a OAuthState
+     * @example
+     * // Get one OAuthState
+     * const oAuthState = await prisma.oAuthState.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OAuthStateFindFirstOrThrowArgs>(args?: SelectSubset<T, OAuthStateFindFirstOrThrowArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more OAuthStates that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OAuthStates
+     * const oAuthStates = await prisma.oAuthState.findMany()
+     * 
+     * // Get first 10 OAuthStates
+     * const oAuthStates = await prisma.oAuthState.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const oAuthStateWithIdOnly = await prisma.oAuthState.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OAuthStateFindManyArgs>(args?: SelectSubset<T, OAuthStateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a OAuthState.
+     * @param {OAuthStateCreateArgs} args - Arguments to create a OAuthState.
+     * @example
+     * // Create one OAuthState
+     * const OAuthState = await prisma.oAuthState.create({
+     *   data: {
+     *     // ... data to create a OAuthState
+     *   }
+     * })
+     * 
+     */
+    create<T extends OAuthStateCreateArgs>(args: SelectSubset<T, OAuthStateCreateArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many OAuthStates.
+     * @param {OAuthStateCreateManyArgs} args - Arguments to create many OAuthStates.
+     * @example
+     * // Create many OAuthStates
+     * const oAuthState = await prisma.oAuthState.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OAuthStateCreateManyArgs>(args?: SelectSubset<T, OAuthStateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OAuthStates and returns the data saved in the database.
+     * @param {OAuthStateCreateManyAndReturnArgs} args - Arguments to create many OAuthStates.
+     * @example
+     * // Create many OAuthStates
+     * const oAuthState = await prisma.oAuthState.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OAuthStates and only return the `id`
+     * const oAuthStateWithIdOnly = await prisma.oAuthState.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OAuthStateCreateManyAndReturnArgs>(args?: SelectSubset<T, OAuthStateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a OAuthState.
+     * @param {OAuthStateDeleteArgs} args - Arguments to delete one OAuthState.
+     * @example
+     * // Delete one OAuthState
+     * const OAuthState = await prisma.oAuthState.delete({
+     *   where: {
+     *     // ... filter to delete one OAuthState
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OAuthStateDeleteArgs>(args: SelectSubset<T, OAuthStateDeleteArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one OAuthState.
+     * @param {OAuthStateUpdateArgs} args - Arguments to update one OAuthState.
+     * @example
+     * // Update one OAuthState
+     * const oAuthState = await prisma.oAuthState.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OAuthStateUpdateArgs>(args: SelectSubset<T, OAuthStateUpdateArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more OAuthStates.
+     * @param {OAuthStateDeleteManyArgs} args - Arguments to filter OAuthStates to delete.
+     * @example
+     * // Delete a few OAuthStates
+     * const { count } = await prisma.oAuthState.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OAuthStateDeleteManyArgs>(args?: SelectSubset<T, OAuthStateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OAuthStates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OAuthStates
+     * const oAuthState = await prisma.oAuthState.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OAuthStateUpdateManyArgs>(args: SelectSubset<T, OAuthStateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OAuthStates and returns the data updated in the database.
+     * @param {OAuthStateUpdateManyAndReturnArgs} args - Arguments to update many OAuthStates.
+     * @example
+     * // Update many OAuthStates
+     * const oAuthState = await prisma.oAuthState.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OAuthStates and only return the `id`
+     * const oAuthStateWithIdOnly = await prisma.oAuthState.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OAuthStateUpdateManyAndReturnArgs>(args: SelectSubset<T, OAuthStateUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one OAuthState.
+     * @param {OAuthStateUpsertArgs} args - Arguments to update or create a OAuthState.
+     * @example
+     * // Update or create a OAuthState
+     * const oAuthState = await prisma.oAuthState.upsert({
+     *   create: {
+     *     // ... data to create a OAuthState
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OAuthState we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OAuthStateUpsertArgs>(args: SelectSubset<T, OAuthStateUpsertArgs<ExtArgs>>): Prisma__OAuthStateClient<$Result.GetResult<Prisma.$OAuthStatePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of OAuthStates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateCountArgs} args - Arguments to filter OAuthStates to count.
+     * @example
+     * // Count the number of OAuthStates
+     * const count = await prisma.oAuthState.count({
+     *   where: {
+     *     // ... the filter for the OAuthStates we want to count
+     *   }
+     * })
+    **/
+    count<T extends OAuthStateCountArgs>(
+      args?: Subset<T, OAuthStateCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OAuthStateCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OAuthState.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OAuthStateAggregateArgs>(args: Subset<T, OAuthStateAggregateArgs>): Prisma.PrismaPromise<GetOAuthStateAggregateType<T>>
+
+    /**
+     * Group by OAuthState.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OAuthStateGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OAuthStateGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OAuthStateGroupByArgs['orderBy'] }
+        : { orderBy?: OAuthStateGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OAuthStateGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOAuthStateGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OAuthState model
+   */
+  readonly fields: OAuthStateFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OAuthState.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OAuthStateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OAuthState model
+   */
+  interface OAuthStateFieldRefs {
+    readonly id: FieldRef<"OAuthState", 'String'>
+    readonly userId: FieldRef<"OAuthState", 'String'>
+    readonly nonceHash: FieldRef<"OAuthState", 'String'>
+    readonly createdAt: FieldRef<"OAuthState", 'DateTime'>
+    readonly expiresAt: FieldRef<"OAuthState", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OAuthState findUnique
+   */
+  export type OAuthStateFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * Filter, which OAuthState to fetch.
+     */
+    where: OAuthStateWhereUniqueInput
+  }
+
+  /**
+   * OAuthState findUniqueOrThrow
+   */
+  export type OAuthStateFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * Filter, which OAuthState to fetch.
+     */
+    where: OAuthStateWhereUniqueInput
+  }
+
+  /**
+   * OAuthState findFirst
+   */
+  export type OAuthStateFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * Filter, which OAuthState to fetch.
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OAuthStates to fetch.
+     */
+    orderBy?: OAuthStateOrderByWithRelationInput | OAuthStateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OAuthStates.
+     */
+    cursor?: OAuthStateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OAuthStates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OAuthStates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OAuthStates.
+     */
+    distinct?: OAuthStateScalarFieldEnum | OAuthStateScalarFieldEnum[]
+  }
+
+  /**
+   * OAuthState findFirstOrThrow
+   */
+  export type OAuthStateFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * Filter, which OAuthState to fetch.
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OAuthStates to fetch.
+     */
+    orderBy?: OAuthStateOrderByWithRelationInput | OAuthStateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OAuthStates.
+     */
+    cursor?: OAuthStateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OAuthStates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OAuthStates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OAuthStates.
+     */
+    distinct?: OAuthStateScalarFieldEnum | OAuthStateScalarFieldEnum[]
+  }
+
+  /**
+   * OAuthState findMany
+   */
+  export type OAuthStateFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * Filter, which OAuthStates to fetch.
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OAuthStates to fetch.
+     */
+    orderBy?: OAuthStateOrderByWithRelationInput | OAuthStateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OAuthStates.
+     */
+    cursor?: OAuthStateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OAuthStates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OAuthStates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OAuthStates.
+     */
+    distinct?: OAuthStateScalarFieldEnum | OAuthStateScalarFieldEnum[]
+  }
+
+  /**
+   * OAuthState create
+   */
+  export type OAuthStateCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OAuthState.
+     */
+    data: XOR<OAuthStateCreateInput, OAuthStateUncheckedCreateInput>
+  }
+
+  /**
+   * OAuthState createMany
+   */
+  export type OAuthStateCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OAuthStates.
+     */
+    data: OAuthStateCreateManyInput | OAuthStateCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OAuthState createManyAndReturn
+   */
+  export type OAuthStateCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * The data used to create many OAuthStates.
+     */
+    data: OAuthStateCreateManyInput | OAuthStateCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OAuthState update
+   */
+  export type OAuthStateUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OAuthState.
+     */
+    data: XOR<OAuthStateUpdateInput, OAuthStateUncheckedUpdateInput>
+    /**
+     * Choose, which OAuthState to update.
+     */
+    where: OAuthStateWhereUniqueInput
+  }
+
+  /**
+   * OAuthState updateMany
+   */
+  export type OAuthStateUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OAuthStates.
+     */
+    data: XOR<OAuthStateUpdateManyMutationInput, OAuthStateUncheckedUpdateManyInput>
+    /**
+     * Filter which OAuthStates to update
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * Limit how many OAuthStates to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * OAuthState updateManyAndReturn
+   */
+  export type OAuthStateUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * The data used to update OAuthStates.
+     */
+    data: XOR<OAuthStateUpdateManyMutationInput, OAuthStateUncheckedUpdateManyInput>
+    /**
+     * Filter which OAuthStates to update
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * Limit how many OAuthStates to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OAuthState upsert
+   */
+  export type OAuthStateUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OAuthState to update in case it exists.
+     */
+    where: OAuthStateWhereUniqueInput
+    /**
+     * In case the OAuthState found by the `where` argument doesn't exist, create a new OAuthState with this data.
+     */
+    create: XOR<OAuthStateCreateInput, OAuthStateUncheckedCreateInput>
+    /**
+     * In case the OAuthState was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OAuthStateUpdateInput, OAuthStateUncheckedUpdateInput>
+  }
+
+  /**
+   * OAuthState delete
+   */
+  export type OAuthStateDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+    /**
+     * Filter which OAuthState to delete.
+     */
+    where: OAuthStateWhereUniqueInput
+  }
+
+  /**
+   * OAuthState deleteMany
+   */
+  export type OAuthStateDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OAuthStates to delete
+     */
+    where?: OAuthStateWhereInput
+    /**
+     * Limit how many OAuthStates to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * OAuthState without action
+   */
+  export type OAuthStateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OAuthState
+     */
+    select?: OAuthStateSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the OAuthState
+     */
+    omit?: OAuthStateOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OAuthStateInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model NotificationTemplate
    */
 
@@ -35205,6 +36396,17 @@ export namespace Prisma {
   export type OAuthAccountScalarFieldEnum = (typeof OAuthAccountScalarFieldEnum)[keyof typeof OAuthAccountScalarFieldEnum]
 
 
+  export const OAuthStateScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    nonceHash: 'nonceHash',
+    createdAt: 'createdAt',
+    expiresAt: 'expiresAt'
+  };
+
+  export type OAuthStateScalarFieldEnum = (typeof OAuthStateScalarFieldEnum)[keyof typeof OAuthStateScalarFieldEnum]
+
+
   export const NotificationTemplateScalarFieldEnum: {
     id: 'id',
     type: 'type',
@@ -35589,6 +36791,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationListRelationFilter
     passwordResets?: PasswordResetListRelationFilter
     oauthAccounts?: OAuthAccountListRelationFilter
+    oauthStates?: OAuthStateListRelationFilter
     bookings?: BookingListRelationFilter
     payments?: PaymentListRelationFilter
     notifications?: NotificationListRelationFilter
@@ -35618,6 +36821,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationOrderByRelationAggregateInput
     passwordResets?: PasswordResetOrderByRelationAggregateInput
     oauthAccounts?: OAuthAccountOrderByRelationAggregateInput
+    oauthStates?: OAuthStateOrderByRelationAggregateInput
     bookings?: BookingOrderByRelationAggregateInput
     payments?: PaymentOrderByRelationAggregateInput
     notifications?: NotificationOrderByRelationAggregateInput
@@ -35650,6 +36854,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationListRelationFilter
     passwordResets?: PasswordResetListRelationFilter
     oauthAccounts?: OAuthAccountListRelationFilter
+    oauthStates?: OAuthStateListRelationFilter
     bookings?: BookingListRelationFilter
     payments?: PaymentListRelationFilter
     notifications?: NotificationListRelationFilter
@@ -37519,6 +38724,61 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"OAuthAccount"> | Date | string
   }
 
+  export type OAuthStateWhereInput = {
+    AND?: OAuthStateWhereInput | OAuthStateWhereInput[]
+    OR?: OAuthStateWhereInput[]
+    NOT?: OAuthStateWhereInput | OAuthStateWhereInput[]
+    id?: StringFilter<"OAuthState"> | string
+    userId?: StringFilter<"OAuthState"> | string
+    nonceHash?: StringFilter<"OAuthState"> | string
+    createdAt?: DateTimeFilter<"OAuthState"> | Date | string
+    expiresAt?: DateTimeFilter<"OAuthState"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type OAuthStateOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    nonceHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type OAuthStateWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    nonceHash?: string
+    AND?: OAuthStateWhereInput | OAuthStateWhereInput[]
+    OR?: OAuthStateWhereInput[]
+    NOT?: OAuthStateWhereInput | OAuthStateWhereInput[]
+    userId?: StringFilter<"OAuthState"> | string
+    createdAt?: DateTimeFilter<"OAuthState"> | Date | string
+    expiresAt?: DateTimeFilter<"OAuthState"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "nonceHash">
+
+  export type OAuthStateOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    nonceHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+    _count?: OAuthStateCountOrderByAggregateInput
+    _max?: OAuthStateMaxOrderByAggregateInput
+    _min?: OAuthStateMinOrderByAggregateInput
+  }
+
+  export type OAuthStateScalarWhereWithAggregatesInput = {
+    AND?: OAuthStateScalarWhereWithAggregatesInput | OAuthStateScalarWhereWithAggregatesInput[]
+    OR?: OAuthStateScalarWhereWithAggregatesInput[]
+    NOT?: OAuthStateScalarWhereWithAggregatesInput | OAuthStateScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OAuthState"> | string
+    userId?: StringWithAggregatesFilter<"OAuthState"> | string
+    nonceHash?: StringWithAggregatesFilter<"OAuthState"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"OAuthState"> | Date | string
+    expiresAt?: DateTimeWithAggregatesFilter<"OAuthState"> | Date | string
+  }
+
   export type NotificationTemplateWhereInput = {
     AND?: NotificationTemplateWhereInput | NotificationTemplateWhereInput[]
     OR?: NotificationTemplateWhereInput[]
@@ -37717,6 +38977,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -37746,6 +39007,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -37775,6 +39037,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -37804,6 +39067,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -39840,6 +41104,61 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type OAuthStateCreateInput = {
+    id?: string
+    nonceHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+    user: UserCreateNestedOneWithoutOauthStatesInput
+  }
+
+  export type OAuthStateUncheckedCreateInput = {
+    id?: string
+    userId: string
+    nonceHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+  }
+
+  export type OAuthStateUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutOauthStatesNestedInput
+  }
+
+  export type OAuthStateUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OAuthStateCreateManyInput = {
+    id?: string
+    userId: string
+    nonceHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+  }
+
+  export type OAuthStateUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OAuthStateUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type NotificationTemplateCreateInput = {
     id?: string
     type: $Enums.NotificationType
@@ -40135,6 +41454,12 @@ export namespace Prisma {
     none?: OAuthAccountWhereInput
   }
 
+  export type OAuthStateListRelationFilter = {
+    every?: OAuthStateWhereInput
+    some?: OAuthStateWhereInput
+    none?: OAuthStateWhereInput
+  }
+
   export type BookingListRelationFilter = {
     every?: BookingWhereInput
     some?: BookingWhereInput
@@ -40186,6 +41511,10 @@ export namespace Prisma {
   }
 
   export type OAuthAccountOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type OAuthStateOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -41751,6 +43080,30 @@ export namespace Prisma {
     _max?: NestedEnumOAuthProviderFilter<$PrismaModel>
   }
 
+  export type OAuthStateCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    nonceHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type OAuthStateMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    nonceHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type OAuthStateMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    nonceHash?: SortOrder
+    createdAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
   export type NotificationTemplateCountOrderByAggregateInput = {
     id?: SortOrder
     type?: SortOrder
@@ -41876,6 +43229,13 @@ export namespace Prisma {
     connect?: OAuthAccountWhereUniqueInput | OAuthAccountWhereUniqueInput[]
   }
 
+  export type OAuthStateCreateNestedManyWithoutUserInput = {
+    create?: XOR<OAuthStateCreateWithoutUserInput, OAuthStateUncheckedCreateWithoutUserInput> | OAuthStateCreateWithoutUserInput[] | OAuthStateUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: OAuthStateCreateOrConnectWithoutUserInput | OAuthStateCreateOrConnectWithoutUserInput[]
+    createMany?: OAuthStateCreateManyUserInputEnvelope
+    connect?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+  }
+
   export type BookingCreateNestedManyWithoutUserInput = {
     create?: XOR<BookingCreateWithoutUserInput, BookingUncheckedCreateWithoutUserInput> | BookingCreateWithoutUserInput[] | BookingUncheckedCreateWithoutUserInput[]
     connectOrCreate?: BookingCreateOrConnectWithoutUserInput | BookingCreateOrConnectWithoutUserInput[]
@@ -41949,6 +43309,13 @@ export namespace Prisma {
     connectOrCreate?: OAuthAccountCreateOrConnectWithoutUserInput | OAuthAccountCreateOrConnectWithoutUserInput[]
     createMany?: OAuthAccountCreateManyUserInputEnvelope
     connect?: OAuthAccountWhereUniqueInput | OAuthAccountWhereUniqueInput[]
+  }
+
+  export type OAuthStateUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<OAuthStateCreateWithoutUserInput, OAuthStateUncheckedCreateWithoutUserInput> | OAuthStateCreateWithoutUserInput[] | OAuthStateUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: OAuthStateCreateOrConnectWithoutUserInput | OAuthStateCreateOrConnectWithoutUserInput[]
+    createMany?: OAuthStateCreateManyUserInputEnvelope
+    connect?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
   }
 
   export type BookingUncheckedCreateNestedManyWithoutUserInput = {
@@ -42087,6 +43454,20 @@ export namespace Prisma {
     update?: OAuthAccountUpdateWithWhereUniqueWithoutUserInput | OAuthAccountUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: OAuthAccountUpdateManyWithWhereWithoutUserInput | OAuthAccountUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: OAuthAccountScalarWhereInput | OAuthAccountScalarWhereInput[]
+  }
+
+  export type OAuthStateUpdateManyWithoutUserNestedInput = {
+    create?: XOR<OAuthStateCreateWithoutUserInput, OAuthStateUncheckedCreateWithoutUserInput> | OAuthStateCreateWithoutUserInput[] | OAuthStateUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: OAuthStateCreateOrConnectWithoutUserInput | OAuthStateCreateOrConnectWithoutUserInput[]
+    upsert?: OAuthStateUpsertWithWhereUniqueWithoutUserInput | OAuthStateUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: OAuthStateCreateManyUserInputEnvelope
+    set?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    disconnect?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    delete?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    connect?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    update?: OAuthStateUpdateWithWhereUniqueWithoutUserInput | OAuthStateUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: OAuthStateUpdateManyWithWhereWithoutUserInput | OAuthStateUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: OAuthStateScalarWhereInput | OAuthStateScalarWhereInput[]
   }
 
   export type BookingUpdateManyWithoutUserNestedInput = {
@@ -42233,6 +43614,20 @@ export namespace Prisma {
     update?: OAuthAccountUpdateWithWhereUniqueWithoutUserInput | OAuthAccountUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: OAuthAccountUpdateManyWithWhereWithoutUserInput | OAuthAccountUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: OAuthAccountScalarWhereInput | OAuthAccountScalarWhereInput[]
+  }
+
+  export type OAuthStateUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<OAuthStateCreateWithoutUserInput, OAuthStateUncheckedCreateWithoutUserInput> | OAuthStateCreateWithoutUserInput[] | OAuthStateUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: OAuthStateCreateOrConnectWithoutUserInput | OAuthStateCreateOrConnectWithoutUserInput[]
+    upsert?: OAuthStateUpsertWithWhereUniqueWithoutUserInput | OAuthStateUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: OAuthStateCreateManyUserInputEnvelope
+    set?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    disconnect?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    delete?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    connect?: OAuthStateWhereUniqueInput | OAuthStateWhereUniqueInput[]
+    update?: OAuthStateUpdateWithWhereUniqueWithoutUserInput | OAuthStateUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: OAuthStateUpdateManyWithWhereWithoutUserInput | OAuthStateUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: OAuthStateScalarWhereInput | OAuthStateScalarWhereInput[]
   }
 
   export type BookingUncheckedUpdateManyWithoutUserNestedInput = {
@@ -43571,6 +44966,20 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutOauthAccountsInput, UserUpdateWithoutOauthAccountsInput>, UserUncheckedUpdateWithoutOauthAccountsInput>
   }
 
+  export type UserCreateNestedOneWithoutOauthStatesInput = {
+    create?: XOR<UserCreateWithoutOauthStatesInput, UserUncheckedCreateWithoutOauthStatesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutOauthStatesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutOauthStatesNestedInput = {
+    create?: XOR<UserCreateWithoutOauthStatesInput, UserUncheckedCreateWithoutOauthStatesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutOauthStatesInput
+    upsert?: UserUpsertWithoutOauthStatesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutOauthStatesInput, UserUpdateWithoutOauthStatesInput>, UserUncheckedUpdateWithoutOauthStatesInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -44218,6 +45627,30 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type OAuthStateCreateWithoutUserInput = {
+    id?: string
+    nonceHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+  }
+
+  export type OAuthStateUncheckedCreateWithoutUserInput = {
+    id?: string
+    nonceHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
+  }
+
+  export type OAuthStateCreateOrConnectWithoutUserInput = {
+    where: OAuthStateWhereUniqueInput
+    create: XOR<OAuthStateCreateWithoutUserInput, OAuthStateUncheckedCreateWithoutUserInput>
+  }
+
+  export type OAuthStateCreateManyUserInputEnvelope = {
+    data: OAuthStateCreateManyUserInput | OAuthStateCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type BookingCreateWithoutUserInput = {
     id?: string
     status?: $Enums.BookingStatus
@@ -44610,6 +46043,33 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"OAuthAccount"> | Date | string
   }
 
+  export type OAuthStateUpsertWithWhereUniqueWithoutUserInput = {
+    where: OAuthStateWhereUniqueInput
+    update: XOR<OAuthStateUpdateWithoutUserInput, OAuthStateUncheckedUpdateWithoutUserInput>
+    create: XOR<OAuthStateCreateWithoutUserInput, OAuthStateUncheckedCreateWithoutUserInput>
+  }
+
+  export type OAuthStateUpdateWithWhereUniqueWithoutUserInput = {
+    where: OAuthStateWhereUniqueInput
+    data: XOR<OAuthStateUpdateWithoutUserInput, OAuthStateUncheckedUpdateWithoutUserInput>
+  }
+
+  export type OAuthStateUpdateManyWithWhereWithoutUserInput = {
+    where: OAuthStateScalarWhereInput
+    data: XOR<OAuthStateUpdateManyMutationInput, OAuthStateUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type OAuthStateScalarWhereInput = {
+    AND?: OAuthStateScalarWhereInput | OAuthStateScalarWhereInput[]
+    OR?: OAuthStateScalarWhereInput[]
+    NOT?: OAuthStateScalarWhereInput | OAuthStateScalarWhereInput[]
+    id?: StringFilter<"OAuthState"> | string
+    userId?: StringFilter<"OAuthState"> | string
+    nonceHash?: StringFilter<"OAuthState"> | string
+    createdAt?: DateTimeFilter<"OAuthState"> | Date | string
+    expiresAt?: DateTimeFilter<"OAuthState"> | Date | string
+  }
+
   export type BookingUpsertWithWhereUniqueWithoutUserInput = {
     where: BookingWhereUniqueInput
     update: XOR<BookingUpdateWithoutUserInput, BookingUncheckedUpdateWithoutUserInput>
@@ -44824,6 +46284,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -44852,6 +46313,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -45092,6 +46554,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -45120,6 +46583,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -45936,6 +47400,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
@@ -45964,6 +47429,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
@@ -46354,6 +47820,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
@@ -46382,6 +47849,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
@@ -46869,6 +48337,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
@@ -46897,6 +48366,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
@@ -47053,6 +48523,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
@@ -47081,6 +48552,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
@@ -47815,6 +49287,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
@@ -47843,6 +49316,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
@@ -47887,6 +49361,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
@@ -47915,6 +49390,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
@@ -47943,6 +49419,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -47971,6 +49448,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48113,6 +49591,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -48141,6 +49620,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -48278,6 +49758,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -48306,6 +49787,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48350,6 +49832,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -48378,6 +49861,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -48406,6 +49890,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -48434,6 +49919,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48478,6 +49964,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -48506,6 +49993,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -48534,6 +50022,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -48562,6 +50051,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48606,6 +50096,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -48634,6 +50125,7 @@ export namespace Prisma {
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -48662,6 +50154,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -48690,6 +50183,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48734,6 +50228,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -48762,6 +50257,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -48790,6 +50286,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -48818,6 +50315,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48862,6 +50360,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -48890,6 +50389,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -48918,6 +50418,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
     emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateCreateNestedManyWithoutUserInput
     bookings?: BookingCreateNestedManyWithoutUserInput
     payments?: PaymentCreateNestedManyWithoutUserInput
     notifications?: NotificationCreateNestedManyWithoutUserInput
@@ -48946,6 +50447,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
     emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
     passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
+    oauthStates?: OAuthStateUncheckedCreateNestedManyWithoutUserInput
     bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
     payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
     notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
@@ -48990,6 +50492,7 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
     emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUpdateManyWithoutUserNestedInput
     bookings?: BookingUpdateManyWithoutUserNestedInput
     payments?: PaymentUpdateManyWithoutUserNestedInput
     notifications?: NotificationUpdateManyWithoutUserNestedInput
@@ -49018,6 +50521,139 @@ export namespace Prisma {
     refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
     emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
     passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
+    oauthStates?: OAuthStateUncheckedUpdateManyWithoutUserNestedInput
+    bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    astrologerProfile?: AstrologerProfileUncheckedUpdateOneWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutOauthStatesInput = {
+    id?: string
+    email: string
+    name: string
+    phone?: string | null
+    profileImage?: string | null
+    dateOfBirth?: Date | string | null
+    birthTime?: string | null
+    birthPlace?: string | null
+    gender?: string | null
+    isPremium?: boolean
+    isActive?: boolean
+    role?: $Enums.UserRole
+    emailVerified?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    passwordCredential?: PasswordCredentialCreateNestedOneWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    refreshTokens?: RefreshTokenCreateNestedManyWithoutUserInput
+    emailVerifications?: EmailVerificationCreateNestedManyWithoutUserInput
+    passwordResets?: PasswordResetCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountCreateNestedManyWithoutUserInput
+    bookings?: BookingCreateNestedManyWithoutUserInput
+    payments?: PaymentCreateNestedManyWithoutUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
+    reviews?: ReviewCreateNestedManyWithoutUserInput
+    astrologerProfile?: AstrologerProfileCreateNestedOneWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutOauthStatesInput = {
+    id?: string
+    email: string
+    name: string
+    phone?: string | null
+    profileImage?: string | null
+    dateOfBirth?: Date | string | null
+    birthTime?: string | null
+    birthPlace?: string | null
+    gender?: string | null
+    isPremium?: boolean
+    isActive?: boolean
+    role?: $Enums.UserRole
+    emailVerified?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    passwordCredential?: PasswordCredentialUncheckedCreateNestedOneWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    refreshTokens?: RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+    emailVerifications?: EmailVerificationUncheckedCreateNestedManyWithoutUserInput
+    passwordResets?: PasswordResetUncheckedCreateNestedManyWithoutUserInput
+    oauthAccounts?: OAuthAccountUncheckedCreateNestedManyWithoutUserInput
+    bookings?: BookingUncheckedCreateNestedManyWithoutUserInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    astrologerProfile?: AstrologerProfileUncheckedCreateNestedOneWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutOauthStatesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutOauthStatesInput, UserUncheckedCreateWithoutOauthStatesInput>
+  }
+
+  export type UserUpsertWithoutOauthStatesInput = {
+    update: XOR<UserUpdateWithoutOauthStatesInput, UserUncheckedUpdateWithoutOauthStatesInput>
+    create: XOR<UserCreateWithoutOauthStatesInput, UserUncheckedCreateWithoutOauthStatesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutOauthStatesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutOauthStatesInput, UserUncheckedUpdateWithoutOauthStatesInput>
+  }
+
+  export type UserUpdateWithoutOauthStatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    profileImage?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthTime?: NullableStringFieldUpdateOperationsInput | string | null
+    birthPlace?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    isPremium?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    passwordCredential?: PasswordCredentialUpdateOneWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    refreshTokens?: RefreshTokenUpdateManyWithoutUserNestedInput
+    emailVerifications?: EmailVerificationUpdateManyWithoutUserNestedInput
+    passwordResets?: PasswordResetUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUpdateManyWithoutUserNestedInput
+    bookings?: BookingUpdateManyWithoutUserNestedInput
+    payments?: PaymentUpdateManyWithoutUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
+    reviews?: ReviewUpdateManyWithoutUserNestedInput
+    astrologerProfile?: AstrologerProfileUpdateOneWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutOauthStatesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    profileImage?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    birthTime?: NullableStringFieldUpdateOperationsInput | string | null
+    birthPlace?: NullableStringFieldUpdateOperationsInput | string | null
+    gender?: NullableStringFieldUpdateOperationsInput | string | null
+    isPremium?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    passwordCredential?: PasswordCredentialUncheckedUpdateOneWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    refreshTokens?: RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+    emailVerifications?: EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
+    passwordResets?: PasswordResetUncheckedUpdateManyWithoutUserNestedInput
+    oauthAccounts?: OAuthAccountUncheckedUpdateManyWithoutUserNestedInput
     bookings?: BookingUncheckedUpdateManyWithoutUserNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutUserNestedInput
     notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
@@ -49071,6 +50707,13 @@ export namespace Prisma {
     scope?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type OAuthStateCreateManyUserInput = {
+    id?: string
+    nonceHash: string
+    createdAt?: Date | string
+    expiresAt: Date | string
   }
 
   export type BookingCreateManyUserInput = {
@@ -49268,6 +50911,27 @@ export namespace Prisma {
     scope?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OAuthStateUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OAuthStateUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OAuthStateUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nonceHash?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type BookingUpdateWithoutUserInput = {
