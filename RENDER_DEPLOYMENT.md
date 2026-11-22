@@ -48,6 +48,10 @@ After deploying, set `GOOGLE_REDIRECT_URI` to:
 
 Add the same HTTPS URL to Google Cloud as an authorized redirect URI.
 
+## Google Meet and transcripts
+
+Astrologers must connect Google OAuth with Calendar events, user email, and Drive read-only scopes. Google Meet recording/transcription requires a Google Workspace account and recording must be enabled for the meeting. To request transcription, call `POST /api/v1/meetings/:id/transcript` with a Google Drive recording file ID; processing runs asynchronously and the transcript is read through the meeting/booking transcript endpoints.
+
 ## Razorpay webhook
 
 Set the Razorpay webhook URL to:

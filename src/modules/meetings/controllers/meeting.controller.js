@@ -81,6 +81,11 @@ export const deleteMeetingController = async (req, res, next) => {
 
 export const getMeetingTranscriptController = async (req, res, next) => {
   try {
+    const meeting = await getMeeting(req.params.id, req.user.userId, req.user.role);
+    if (!meeting) {
+      return res.status(404).json({ success: false, message: 'Meeting not found' });
+    }
+
     const transcript = await getMeetingTranscript(req.params.id);
     res.json({ success: true, data: transcript });
   } catch (error) {
@@ -109,6 +114,29 @@ export const googleOAuthCallbackController = async (req, res, next) => {
     await storeGoogleOAuthAccount(userId, result);
 
     res.json({ success: true, message: 'Google account connected', data: { email: result.email } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const requestMeetingTranscriptController = async (req, res, next) => {
+  try {
+    const meeting = await getMeeting(req.params.id, req.user.userId, req.user.role);
+    if (!meeting) return res.status(404).json({ success: false, message: 'Meeting not found' });
+
+    const { driveFileId, language = 'en' } = req.body;
+    if (typeof driveFileId !== 'string' || !/^[\w-]{10,}$/.test(driveFileId)) {
+      return res.status(400).json({ success: false, message: 'A valid Google Drive recording file ID is required' });
+    }
+
+    const { queueJob } = await import('../../../jobs/index.js');
+    const jobId = await queueJob('generateTranscript', {
+      meetingId: meeting.id,
+      driveFileId,
+      language
+    });
+
+    res.status(202).json({ success: true, message: 'Transcript job queued', data: { jobId } });
   } catch (error) {
     next(error);
   }

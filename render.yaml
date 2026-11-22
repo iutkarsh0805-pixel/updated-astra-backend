@@ -34,8 +34,6 @@ services:
         sync: false
       - key: GOOGLE_REDIRECT_URI
         sync: false
-      - key: GOOGLE_MEET_API_KEY
-        sync: false
       - key: CORS_ORIGIN
         sync: false
       - key: SMTP_HOST

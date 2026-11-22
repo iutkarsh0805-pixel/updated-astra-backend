@@ -7,24 +7,63 @@ import crypto from 'crypto';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
-const GOOGLE_MEET_API_KEY = process.env.GOOGLE_MEET_API_KEY;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// OAuth2 client for Google Calendar API
-let oauth2Client = null;
+const tokenKey = crypto.createHash('sha256').update(JWT_SECRET || '').digest();
+const encryptToken = (token) => {
+  if (!token) return null;
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', tokenKey, iv);
+  const encrypted = Buffer.concat([cipher.update(token, 'utf8'), cipher.final()]);
+  return [iv, cipher.getAuthTag(), encrypted].map(part => part.toString('base64url')).join('.');
+};
+
+const decryptToken = (value) => {
+  if (!value) return null;
+  const [iv, tag, encrypted] = value.split('.').map(part => Buffer.from(part, 'base64url'));
+  const decipher = crypto.createDecipheriv('aes-256-gcm', tokenKey, iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+};
 
 export const getOAuth2Client = (tokens = null) => {
-  oauth2Client = new google.auth.OAuth2(
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI
-  );
+  const client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+  if (tokens) client.setCredentials(tokens);
+  return client;
+};
 
-  if (tokens) {
-    oauth2Client.setCredentials(tokens);
+export const getOAuthClientForUser = async (userId) => {
+  const account = await prisma.oAuthAccount.findFirst({
+    where: { userId, provider: 'GOOGLE' },
+    orderBy: { updatedAt: 'desc' }
+  });
+
+  if (!account?.refreshToken) {
+    throw new Error('Google Calendar account is not connected for this astrologer');
   }
 
-  return oauth2Client;
+  const client = getOAuth2Client({
+    access_token: decryptToken(account.accessToken),
+    refresh_token: decryptToken(account.refreshToken),
+    expiry_date: account.refreshTokenExpiresAt?.getTime()
+  });
+
+  client.on('tokens', async (tokens) => {
+    try {
+      await prisma.oAuthAccount.update({
+        where: { id: account.id },
+        data: {
+          accessToken: tokens.access_token ? encryptToken(tokens.access_token) : account.accessToken,
+          refreshToken: tokens.refresh_token ? encryptToken(tokens.refresh_token) : account.refreshToken,
+          refreshTokenExpiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : account.refreshTokenExpiresAt
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to persist refreshed Google tokens', { error: error.message });
+    }
+  });
+
+  return client;
 };
 
 // Generate Google OAuth URL
@@ -36,9 +75,9 @@ export const getGoogleAuthUrl = (userId) => {
   );
 
   const scopes = [
-    'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events',
-    'https://www.googleapis.com/auth/meetings.space'
+    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/userinfo.email'
   ];
 
   return oauth2Client.generateAuthUrl({
@@ -67,6 +106,23 @@ export const exchangeGoogleAuthCode = async (code) => {
 
 // Store Google OAuth account information
 export const storeGoogleOAuthAccount = async (userId, result) => {
+  const existing = await prisma.oAuthAccount.findUnique({
+    where: {
+      provider_providerAccountId: {
+        provider: 'GOOGLE',
+        providerAccountId: result.providerAccountId
+      }
+    }
+  });
+
+  if (existing && existing.userId !== userId) {
+    throw new Error('This Google account is already connected to another user');
+  }
+
+  const accessToken = encryptToken(result.access_token);
+  const refreshToken = encryptToken(result.refresh_token);
+  const refreshTokenExpiresAt = result.expiry_date ? new Date(result.expiry_date) : null;
+
   return await prisma.oAuthAccount.upsert({
     where: {
       provider_providerAccountId: {
@@ -76,19 +132,19 @@ export const storeGoogleOAuthAccount = async (userId, result) => {
     },
     update: {
       userId,
-      accessToken: result.access_token || null,
-      refreshToken: result.refresh_token || undefined,
-      refreshTokenExpiresAt: result.expiry_date ? new Date(result.expiry_date) : null,
-      tokenType: result.token_type || null,
-      scope: result.scope || null
+      accessToken: accessToken || existing?.accessToken,
+      refreshToken: refreshToken || existing?.refreshToken,
+      refreshTokenExpiresAt: refreshTokenExpiresAt || existing?.refreshTokenExpiresAt,
+      tokenType: result.token_type || existing?.tokenType,
+      scope: result.scope || existing?.scope
     },
     create: {
       userId,
       provider: 'GOOGLE',
       providerAccountId: result.providerAccountId,
-      accessToken: result.access_token || null,
-      refreshToken: result.refresh_token || null,
-      refreshTokenExpiresAt: result.expiry_date ? new Date(result.expiry_date) : null,
+      accessToken,
+      refreshToken,
+      refreshTokenExpiresAt,
       tokenType: result.token_type || null,
       scope: result.scope || null
     }
@@ -99,90 +155,81 @@ export const storeGoogleOAuthAccount = async (userId, result) => {
 export const createMeeting = async (bookingId, userId) => {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { slot: true, astrologer: { include: { user: true } }, user: true }
+    include: {
+      slot: true,
+      astrologer: { include: { user: true } },
+      user: true,
+      meeting: true
+    }
   });
 
-  if (!booking) {
-    throw new Error('Booking not found');
-  }
+  if (!booking) throw new Error('Booking not found');
+  if (!booking.astrologer?.user || !booking.slot) throw new Error('Booking is missing an astrologer or slot');
+  if (booking.status !== 'CONFIRMED') throw new Error('Only confirmed bookings can create a meeting');
 
-  // Check authorization
-  if (booking.userId !== userId && booking.astrologerId !== userId) {
-    const astrologer = await prisma.astrologerProfile.findUnique({
-      where: { userId: userId }
-    });
-    if (!astrologer || astrologer.id !== booking.astrologerId) {
-      throw new Error('Not authorized');
-    }
-  }
+  const isCustomer = booking.userId === userId;
+  const isAstrologer = booking.astrologer.userId === userId;
+  if (!isCustomer && !isAstrologer) throw new Error('Not authorized');
+  if (booking.meeting) return booking.meeting;
 
+  let calendar;
+  let createdEventId;
   try {
-    if (!oauth2Client) {
-      throw new Error('Google OAuth is not connected');
-    }
+    const auth = await getOAuthClientForUser(booking.astrologer.userId);
+    calendar = google.calendar({ version: 'v3', auth });
 
-    const auth = oauth2Client;
-
-    const calendar = google.calendar({ version: 'v3', auth });
-
-    const slot = booking.slot;
-    const astrologerName = booking.astrologer.user.name;
-    const customerName = booking.user.name;
-
-    const startTime = new Date(`${slot.date.toISOString().split('T')[0]}T${slot.startTime}:00+05:30`);
-    const endTime = new Date(`${slot.date.toISOString().split('T')[0]}T${slot.endTime}:00+05:30`);
-
-    const event = {
-      summary: `Astrology Consultation - ${customerName} with ${astrologerName}`,
-      description: `Astrology consultation booking #${bookingId}\nCustomer: ${customerName}\nAstrologer: ${astrologerName}`,
-      start: { dateTime: startTime.toISOString(), timeZone: 'Asia/Kolkata' },
-      end: { dateTime: endTime.toISOString(), timeZone: 'Asia/Kolkata' },
-      attendees: [
-        { email: booking.user.email },
-        { email: booking.astrologer.user.email }
-      ],
-      conferenceData: {
-        createRequest: {
-          requestId: `meeting-${bookingId}-${Date.now()}`,
-          conferenceSolutionKey: {
-            type: 'hangoutsMeet'
-          }
-        }
-      },
-      reminders: {
-        useDefault: false,
-        overrides: [
-          { method: 'email', minutes: 30 },
-          { method: 'popup', minutes: 10 }
-        ]
-      }
-    };
+    const datePart = booking.slot.date.toISOString().slice(0, 10);
+    const startTime = new Date(`${datePart}T${booking.slot.startTime}:00+05:30`);
+    const endTime = new Date(`${datePart}T${booking.slot.endTime}:00+05:30`);
 
     const response = await calendar.events.insert({
       calendarId: 'primary',
-      requestBody: event,
-      conferenceDataVersion: 1
+      conferenceDataVersion: 1,
+      requestBody: {
+        summary: `Astrology Consultation - ${booking.user.name} with ${booking.astrologer.user.name}`,
+        description: `Consultation booking ${booking.id}`,
+        start: { dateTime: startTime.toISOString(), timeZone: 'Asia/Kolkata' },
+        end: { dateTime: endTime.toISOString(), timeZone: 'Asia/Kolkata' },
+        attendees: [{ email: booking.user.email }, { email: booking.astrologer.user.email }],
+        conferenceData: {
+          createRequest: {
+            requestId: `astra-${booking.id}`,
+            conferenceSolutionKey: { type: 'hangoutsMeet' }
+          }
+        }
+      }
     });
 
-    const meetLink = response.data.conferenceData.entryPoints.find(
-      entry => entry.entryPointType === 'video'
-    )?.uri;
+    createdEventId = response.data.id;
+    const meetLink = response.data.conferenceData?.entryPoints?.find(entry => entry.entryPointType === 'video')?.uri
+      || response.data.hangoutLink;
 
-    // Create meeting record
+    if (!createdEventId || !meetLink) {
+      throw new Error('Google Calendar did not return a Meet link');
+    }
+
     const meeting = await prisma.meeting.create({
       data: {
-        bookingId: bookingId,
-        googleEventId: response.data.id,
-        googleMeetId: response.data.id,
+        bookingId,
+        googleEventId: createdEventId,
+        googleMeetId: meetLink,
         meetingUrl: meetLink,
-        startTime: slot.date,
-        endTime: slot.date,
+        startTime,
+        endTime,
         status: 'SCHEDULED'
       }
     });
 
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { meetingUrl: meetLink }
+    });
+
     return meeting;
   } catch (error) {
+    if (createdEventId && calendar) {
+      await calendar.events.delete({ calendarId: 'primary', eventId: createdEventId }).catch(() => {});
+    }
     logger.error('Meeting creation error:', error);
     throw new Error(`Failed to create meeting: ${error.message}`);
   }
@@ -219,15 +266,14 @@ export const getMeeting = async (meetingId, userId, role) => {
 export const updateMeeting = async (meetingId, userId, data) => {
   const meeting = await prisma.meeting.findUnique({
     where: { id: meetingId },
-    include: { booking: true }
+    include: { booking: { include: { astrologer: true } } }
   });
 
   if (!meeting) {
     throw new Error('Meeting not found');
   }
 
-  // Check authorization
-  if (meeting.booking.userId !== userId && meeting.booking.astrologerId !== userId) {
+  if (meeting.booking.userId !== userId && meeting.booking.astrologer?.userId !== userId) {
     throw new Error('Not authorized');
   }
 
@@ -243,25 +289,17 @@ export const updateMeeting = async (meetingId, userId, data) => {
 export const deleteMeeting = async (meetingId, userId) => {
   const meeting = await prisma.meeting.findUnique({
     where: { id: meetingId },
-    include: { booking: true }
+    include: { booking: { include: { astrologer: true } } }
   });
 
-  if (!meeting) {
-    throw new Error('Meeting not found');
-  }
-
-  // Check authorization
-  if (meeting.booking.userId !== userId && meeting.booking.astrologerId !== userId) {
+  if (!meeting) throw new Error('Meeting not found');
+  if (meeting.booking.userId !== userId && meeting.booking.astrologer?.userId !== userId) {
     throw new Error('Not authorized');
   }
 
   try {
-    if (!oauth2Client) {
-      throw new Error('Google OAuth is not connected');
-    }
-
-    const auth = oauth2Client;
-
+    const calendarOwnerId = meeting.booking.astrologer.userId;
+    const auth = await getOAuthClientForUser(calendarOwnerId);
     const calendar = google.calendar({ version: 'v3', auth });
 
     await calendar.events.delete({
@@ -269,10 +307,7 @@ export const deleteMeeting = async (meetingId, userId) => {
       eventId: meeting.googleEventId
     });
 
-    await prisma.meeting.delete({
-      where: { id: meetingId }
-    });
-
+    await prisma.meeting.delete({ where: { id: meetingId } });
     return { success: true };
   } catch (error) {
     logger.error('Meeting deletion error:', error);
@@ -282,18 +317,13 @@ export const deleteMeeting = async (meetingId, userId) => {
 
 // Get meeting transcript
 export const getMeetingTranscript = async (meetingId) => {
-  // This would integrate with transcription service
-  // Placeholder for now
   const meeting = await prisma.meeting.findUnique({
     where: { id: meetingId },
-    include: { transcript: true }
+    include: { booking: { include: { transcripts: { orderBy: { createdAt: 'desc' }, take: 1 } } } }
   });
 
-  if (!meeting) {
-    throw new Error('Meeting not found');
-  }
-
-  return meeting.transcript;
+  if (!meeting) throw new Error('Meeting not found');
+  return meeting.booking.transcripts[0] || null;
 };
 
 // Schedule meeting reminders (pg-boss job would call this)

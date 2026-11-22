@@ -90,7 +90,7 @@ export const getAllBookings = async (filters = {}) => {
       user: { select: { id: true, email: true, name: true } },
       astrologer: { include: { user: true } },
       slot: true,
-      payments: true,
+      payment: true,
       meeting: true
     }
   });

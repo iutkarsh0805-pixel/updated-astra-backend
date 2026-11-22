@@ -10,7 +10,8 @@ export const createReview = async (data) => {
     where: { id: bookingId },
     include: {
       astrologer: true,
-      user: true
+      user: true,
+      payment: true
     }
   });
 
@@ -40,17 +41,15 @@ export const createReview = async (data) => {
 
   const review = await prisma.review.create({
     data: {
-      bookingId: bookingId,
+      bookingId,
       userId: customerId,
       astrologerId: booking.astrologerId,
-      rating: rating,
-      comment: comment || '',
-      serviceId: booking.serviceId
+      rating,
+      comment: comment || ''
     },
     include: {
       user: true,
-      astrologer: { include: { user: true } },
-      service: true
+      astrologer: { include: { user: true } }
     }
   });
 
@@ -90,8 +89,7 @@ export const getReviewsByAstrologer = async (astrologerId, page = 1, limit = 10)
     take: limit,
     orderBy: { createdAt: 'desc' },
     include: {
-      user: { select: { id: true, name: true, email: true } },
-      service: true
+      user: { select: { id: true, name: true, email: true } }
     }
   });
 
@@ -114,7 +112,6 @@ export const getMyReviews = async (customerId) => {
     orderBy: { createdAt: 'desc' },
     include: {
       astrologer: { include: { user: true } },
-      service: true,
       booking: { select: { slot: true } }
     }
   });
@@ -127,7 +124,6 @@ export const getReviewById = async (reviewId) => {
     include: {
       user: true,
       astrologer: { include: { user: true } },
-      service: true,
       booking: true
     }
   });

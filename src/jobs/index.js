@@ -4,9 +4,11 @@ import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { createMeeting } from '../modules/meetings/services/meeting.service.js';
 import { sendMeetingReminder } from '../modules/notifications/services/notification.service.js';
-import { initializeReport } from '../modules/reports/services/report.service.js';
+import { generateReportForBooking } from '../modules/reports/services/report.service.js';
+import { transcribeGoogleDriveRecording } from '../modules/transcripts/services/transcript.service.js';
 
 let pgBoss = null;
+let jobsStarted = false;
 
 export const getPgBoss = () => {
   if (!pgBoss) {
@@ -35,27 +37,34 @@ export const initializeJobs = async () => {
 
   // Job: Expire booking
   boss.work('expireBooking', async (job) => {
-    logger.info('Processing expireBooking job', { bookingId: job.data.bookingId });
-
     const booking = await prisma.booking.findUnique({
-      where: { id: job.data.bookingId }
+      where: { id: job.data.bookingId },
+      include: { payment: true }
     });
 
-    if (!booking) return;
+    if (!booking || booking.status !== 'PENDING') return;
 
-    if (booking.status === 'PENDING') {
-      await prisma.booking.update({
-        where: { id: job.data.bookingId },
+    await prisma.$transaction(async (tx) => {
+      const changed = await tx.booking.updateMany({
+        where: { id: booking.id, status: 'PENDING' },
         data: { status: 'EXPIRED' }
       });
+      if (changed.count !== 1) return;
 
-      await prisma.payment.update({
-        where: { id: job.data.paymentId },
-        data: { status: 'REFUNDED' }
+      if (booking.payment?.status === 'PENDING') {
+        await tx.payment.update({
+          where: { id: booking.payment.id },
+          data: { status: 'FAILED' }
+        });
+      }
+
+      await tx.slot.updateMany({
+        where: { id: booking.slotId, status: 'RESERVED' },
+        data: { status: 'AVAILABLE' }
       });
+    });
 
-      logger.info('Booking expired and refunded', { bookingId: booking.id });
-    }
+    logger.info('Pending booking expired and its slot released', { bookingId: booking.id });
   });
 
   // Job: Create meeting
@@ -64,7 +73,9 @@ export const initializeJobs = async () => {
 
     try {
       const meeting = await createMeeting(job.data.bookingId, job.data.userId);
-      logger.info('Meeting created', { meetingId: meeting.id });
+      const delay = Math.max(0, meeting.startTime.getTime() - Date.now() - 30 * 60 * 1000);
+      await queueJob('sendReminder', { bookingId: job.data.bookingId }, { delay });
+      logger.info('Meeting created and reminder scheduled', { meetingId: meeting.id });
     } catch (error) {
       logger.error('Failed to create meeting', { error: error.message });
       throw error;
@@ -78,23 +89,38 @@ export const initializeJobs = async () => {
 
   // Job: Generate transcript
   boss.work('generateTranscript', async (job) => {
-    logger.info('Processing generateTranscript job', { meetingId: job.data.meetingId });
-    // Integration with transcription service would go here
+    const transcript = await transcribeGoogleDriveRecording(
+      job.data.meetingId,
+      job.data.driveFileId,
+      job.data.language || 'en'
+    );
+    logger.info('Transcript ready', { meetingId: job.data.meetingId, transcriptId: transcript.id });
   });
 
   // Job: Generate AI report
   boss.work('generateReport', async (job) => {
-    await initializeReport(job.data.bookingId, job.data.userId);
+    logger.info('Processing generateReport job', { bookingId: job.data.bookingId });
+
+    try {
+      await generateReportForBooking(job.data.bookingId, job.data.userId);
+      logger.info('Report generation initiated', { bookingId: job.data.bookingId });
+    } catch (error) {
+      logger.error('Failed to generate report', { error: error.message });
+      throw error;
+    }
   });
 
   await boss.start();
+  jobsStarted = true;
   logger.info('Job workers initialized');
 };
 
 // Queue a job
 export const queueJob = async (name, data, options = {}) => {
-  const boss = getPgBoss();
-  return await boss.send(name, data, options);
+  if (!jobsStarted) {
+    throw new Error('Background jobs have not been initialized');
+  }
+  return await getPgBoss().send(name, data, options);
 };
 
 // Schedule booking expiration

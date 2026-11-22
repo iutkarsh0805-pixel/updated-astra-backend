@@ -6,21 +6,21 @@ import {
   deleteMeetingController,
   getMeetingTranscriptController,
   getGoogleAuthUrlController,
-  googleOAuthCallbackController
+  googleOAuthCallbackController,
+  requestMeetingTranscriptController
 } from '../controllers/meeting.controller.js';
 import { requireAuth } from '../../auth/middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Public routes
+router.get('/google/callback', googleOAuthCallbackController);
+router.get('/google-auth-url', requireAuth, getGoogleAuthUrlController);
 
-// Protected routes
 router.post('/', requireAuth, createMeetingController);
 router.get('/:id', requireAuth, getMeetingController);
 router.put('/:id', requireAuth, updateMeetingController);
 router.delete('/:id', requireAuth, deleteMeetingController);
 router.get('/:id/transcript', requireAuth, getMeetingTranscriptController);
-router.get('/google/callback', googleOAuthCallbackController);
-router.get('/google-auth-url', requireAuth, getGoogleAuthUrlController);
+router.post('/:id/transcript', requireAuth, requestMeetingTranscriptController);
 
 export default router;

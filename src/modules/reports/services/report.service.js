@@ -1,6 +1,12 @@
 // Report Service
 import { prisma } from '../../../lib/prisma.js';
 import { logger } from '../../../lib/logger.js';
+import {
+  generateSummary,
+  generateRecommendations,
+  generateInsights,
+  analyzeSentiment
+} from '../../ai/services/ai.service.js';
 
 // Helper functions for date manipulation (replaces date-fns)
 const startOfToday = () => {
@@ -90,7 +96,7 @@ const generateDefaultSummary = (booking) => {
   const astrologerName = booking.astrologer?.user?.name || 'Astrologer';
   const customerName = booking.user?.name || 'Customer';
 
-  return `${customerName} consulted with ${astrologerName} regarding ${booking.service || 'astrological consultation'}.\n\nBooking Details:\n- Date: ${booking.slot?.date?.toISOString().split('T')[0] || 'N/A'}\n- Status: ${booking.status}\n- Payment: ${booking.payment?.status || 'Not processed'}\n\nConsultation Summary:\n${booking.consultation?.summary || 'No consultation summary available.'}`;
+  return `${customerName} consulted with ${astrologerName} regarding ${booking.service?.title || 'astrological consultation'}.\n\nBooking Details:\n- Date: ${booking.slot?.date?.toISOString().split('T')[0] || 'N/A'}\n- Status: ${booking.status}\n- Payment: ${booking.payment?.status || 'Not processed'}\n\nConsultation Summary:\n${booking.consultation?.summary || 'No consultation summary available.'}`;
 };
 
 // Get report by booking ID
@@ -329,4 +335,74 @@ export const deleteReport = async (reportId, userId, role) => {
   });
 
   return { success: true, message: 'Report deleted' };
+};
+
+// Generate AI report for booking
+export const generateReportForBooking = async (bookingId) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      user: true,
+      service: true,
+      payment: true,
+      slot: true,
+      consultation: true,
+      astrologer: { include: { user: true } },
+      transcripts: { orderBy: { createdAt: 'desc' }, take: 1 }
+    }
+  });
+
+  if (!booking) throw new Error('Booking not found');
+  if (booking.status !== 'COMPLETED') throw new Error('Only completed bookings can generate reports');
+
+  const report = await prisma.report.upsert({
+    where: { bookingId },
+    update: { status: 'PROCESSING' },
+    create: { bookingId, status: 'PROCESSING' }
+  });
+
+  try {
+    const transcript = booking.transcripts[0]?.content || '';
+    const consultationData = {
+      astrologerName: booking.astrologer?.user?.name,
+      customerName: booking.user.name,
+      service: booking.service.title,
+      transcript,
+      summary: booking.consultation?.summary,
+      topics: booking.consultation?.topics || [],
+      recommendations: booking.consultation?.recommendations || [],
+      birthDetails: {
+        date: booking.user.dateOfBirth,
+        time: booking.user.birthTime,
+        location: booking.user.birthPlace
+      }
+    };
+
+    const [summary, recommendations, sentiment] = await Promise.all([
+      generateSummary(consultationData),
+      generateRecommendations(consultationData),
+      transcript ? analyzeSentiment(transcript) : Promise.resolve({ sentiment: 'unavailable', confidence: 0 })
+    ]);
+    if (summary === 'Summary generation failed') throw new Error(summary);
+
+    const insights = await generateInsights({
+      bookingAmount: booking.payment?.amount || 0,
+      service: booking.service.title,
+      astrologerRating: booking.astrologer?.rating || 0
+    });
+
+    return await prisma.report.update({
+      where: { id: report.id },
+      data: {
+        summary,
+        recommendations,
+        insights,
+        aiAnalysis: { sentiment, transcriptAvailable: Boolean(transcript) },
+        status: 'READY'
+      }
+    });
+  } catch (error) {
+    await prisma.report.update({ where: { id: report.id }, data: { status: 'FAILED' } });
+    throw error;
+  }
 };

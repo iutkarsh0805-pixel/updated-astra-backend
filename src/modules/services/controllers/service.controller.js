@@ -24,8 +24,8 @@ export const getService = async (req, res, next) => {
   try {
     const service = await getServiceById(
       req.params.id,
-      req.user.userId,
-      req.user.role
+      req.user?.userId,
+      req.user?.role || 'CUSTOMER'
     );
 
     if (!service) {

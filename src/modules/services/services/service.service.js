@@ -70,50 +70,37 @@ export const createService = async (data) => {
 
 // Update a service
 export const updateService = async (serviceId, userId, data) => {
-  const service = await prisma.service.findUnique({
-    where: { id: serviceId }
+  const astrologer = await prisma.astrologerProfile.findUnique({
+    where: { userId }
   });
 
-  if (!service) {
-    throw new Error('Service not found');
-  }
+  if (!astrologer) throw new Error('Astrologer profile not found');
 
-  // Check authorization
-  if (service.astrologerId !== userId) {
-    const astrologer = await prisma.astrologerProfile.findUnique({
-      where: { userId: userId }
-    });
-    if (!astrologer || astrologer.id !== service.astrologerId) {
-      throw new Error('Not authorized to update this service');
+  const link = await prisma.astrologerService.findUnique({
+    where: {
+      astrologerId_serviceId: {
+        astrologerId: astrologer.id,
+        serviceId
+      }
     }
-  }
+  });
+
+  if (!link) throw new Error('Not authorized to update this service');
 
   const updatedService = await prisma.service.update({
     where: { id: serviceId },
     data: {
-      name: data.name,
+      title: data.name || data.title,
       description: data.description,
       category: data.category,
-      durationMinutes: data.durationMinutes,
-      status: data.status
+      duration: data.durationMinutes || data.duration
     }
   });
 
-  // Update price if provided
-  if (data.price) {
-    await prisma.servicePrice.upsert({
-      where: { serviceId: serviceId },
-      update: {
-        amount: data.price.amount,
-        currency: data.price.currency,
-        type: data.price.type
-      },
-      create: {
-        serviceId: serviceId,
-        amount: data.price.amount,
-        currency: data.price.currency,
-        type: data.price.type || 'FIXED'
-      }
+  if (data.price !== undefined) {
+    await prisma.astrologerService.update({
+      where: { id: link.id },
+      data: { price: data.price?.amount ?? data.price }
     });
   }
 
@@ -122,33 +109,27 @@ export const updateService = async (serviceId, userId, data) => {
 
 // Delete a service
 export const deleteService = async (serviceId, userId) => {
-  const service = await prisma.service.findUnique({
-    where: { id: serviceId }
+  const astrologer = await prisma.astrologerProfile.findUnique({
+    where: { userId }
   });
 
-  if (!service) {
-    throw new Error('Service not found');
-  }
+  if (!astrologer) throw new Error('Astrologer profile not found');
 
-  // Check authorization
-  if (service.astrologerId !== userId) {
-    const astrologer = await prisma.astrologerProfile.findUnique({
-      where: { userId: userId }
-    });
-    if (!astrologer || astrologer.id !== service.astrologerId) {
-      throw new Error('Not authorized to delete this service');
+  const link = await prisma.astrologerService.findUnique({
+    where: {
+      astrologerId_serviceId: {
+        astrologerId: astrologer.id,
+        serviceId
+      }
     }
-  }
+  });
 
-  // Check if service has active bookings
+  if (!link) throw new Error('Not authorized to delete this service');
+
   const activeBookings = await prisma.booking.count({
     where: {
-      serviceId: serviceId,
-      OR: [
-        { status: 'PENDING' },
-        { status: 'CONFIRMED' },
-        { status: 'CONFIRMED' }
-      ]
+      serviceId,
+      status: { in: ['PENDING', 'CONFIRMED'] }
     }
   });
 
@@ -156,9 +137,15 @@ export const deleteService = async (serviceId, userId) => {
     throw new Error('Cannot delete service with active bookings');
   }
 
-  await prisma.service.delete({
-    where: { id: serviceId }
+  await prisma.astrologerService.delete({ where: { id: link.id } });
+
+  const remainingLinks = await prisma.astrologerService.count({
+    where: { serviceId }
   });
+
+  if (remainingLinks === 0) {
+    await prisma.service.delete({ where: { id: serviceId } });
+  }
 
   return { success: true };
 };
@@ -216,10 +203,22 @@ export const getServiceAnalytics = async (serviceId, userId) => {
     throw new Error('Service not found');
   }
 
-  // Check authorization
-  if (service.astrologerId !== userId) {
-    throw new Error('Not authorized');
-  }
+  const astrologer = await prisma.astrologerProfile.findUnique({
+    where: { userId }
+  });
+
+  if (!astrologer) throw new Error('Astrologer profile not found');
+
+  const link = await prisma.astrologerService.findUnique({
+    where: {
+      astrologerId_serviceId: {
+        astrologerId: astrologer.id,
+        serviceId
+      }
+    }
+  });
+
+  if (!link) throw new Error('Not authorized');
 
   const totalBookings = await prisma.booking.count({
     where: { serviceId: serviceId }
@@ -238,7 +237,7 @@ export const getServiceAnalytics = async (serviceId, userId) => {
   });
 
   const reviews = await prisma.review.findMany({
-    where: { serviceId: serviceId },
+    where: { booking: { serviceId } },
     include: { user: true },
     orderBy: { rating: 'desc' }
   });

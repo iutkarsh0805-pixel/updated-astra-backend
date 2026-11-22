@@ -434,6 +434,14 @@ exports.Prisma.SystemSettingsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.WebhookEventScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  eventType: 'eventType',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -593,7 +601,8 @@ exports.Prisma.ModelName = {
   LoginAttempt: 'LoginAttempt',
   OAuthAccount: 'OAuthAccount',
   NotificationTemplate: 'NotificationTemplate',
-  SystemSettings: 'SystemSettings'
+  SystemSettings: 'SystemSettings',
+  WebhookEvent: 'WebhookEvent'
 };
 
 /**

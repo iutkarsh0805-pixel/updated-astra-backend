@@ -3,6 +3,8 @@ import { prisma } from '../../../lib/prisma.js';
 import { logger } from '../../../lib/logger.js';
 import fs from 'node:fs/promises';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { google } from 'googleapis';
+import { getOAuthClientForUser } from '../../meetings/services/meeting.service.js';
 
 // Get transcript for a meeting
 export const getTranscriptByMeeting = async (meetingId, userId, role) => {
@@ -34,16 +36,17 @@ export const upsertTranscript = async (data) => {
     orderBy: { createdAt: 'desc' }
   });
 
-  const wordCount = data.content?.split(/\s+/).filter(Boolean).length || 0;
   const transcriptData = {
-    content: data.content || null,
-    summary: data.summary || null,
-    language: data.language || 'en',
-    wordCount,
-    status: data.status || 'READY',
-    audioUrl: data.audioUrl || null,
-    transcriptUrl: data.transcriptUrl || null
+    language: data.language || existing?.language || 'en',
+    status: data.status || existing?.status || 'READY'
   };
+  if (Object.hasOwn(data, 'content')) {
+    transcriptData.content = data.content || null;
+    transcriptData.wordCount = data.content?.split(/\s+/).filter(Boolean).length || 0;
+  }
+  if (Object.hasOwn(data, 'summary')) transcriptData.summary = data.summary || null;
+  if (Object.hasOwn(data, 'audioUrl')) transcriptData.audioUrl = data.audioUrl || null;
+  if (Object.hasOwn(data, 'transcriptUrl')) transcriptData.transcriptUrl = data.transcriptUrl || null;
 
   if (existing) {
     return await prisma.transcript.update({
@@ -221,4 +224,60 @@ export const transcribeAudioFile = async (filePath, language = 'en') => {
   ]);
 
   return result.response.text().trim();
+};
+
+// Transcribe Google Drive recording
+export const transcribeGoogleDriveRecording = async (meetingId, driveFileId, language = 'en') => {
+  if (!/^[\w-]{10,}$/.test(driveFileId)) throw new Error('Invalid Google Drive file ID');
+  if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not configured');
+
+  const meeting = await prisma.meeting.findUnique({
+    where: { id: meetingId },
+    include: { booking: { include: { astrologer: true } } }
+  });
+  if (!meeting) throw new Error('Meeting not found');
+  if (!meeting.booking.astrologer) throw new Error('Booking has no assigned astrologer');
+
+  const auth = await getOAuthClientForUser(meeting.booking.astrologer.userId);
+  const drive = google.drive({ version: 'v3', auth });
+  const metadata = await drive.files.get({
+    fileId: driveFileId,
+    fields: 'id,name,mimeType,size'
+  });
+
+  const mimeType = metadata.data.mimeType;
+  const allowedTypes = new Set(['audio/mp4', 'audio/mpeg', 'audio/wav', 'video/mp4']);
+  const size = Number(metadata.data.size || 0);
+  if (!allowedTypes.has(mimeType)) throw new Error(`Unsupported recording type: ${mimeType}`);
+  if (!size || size > 20 * 1024 * 1024) throw new Error('Recording must be between 1 byte and 20 MB');
+
+  await upsertTranscript({
+    bookingId: meeting.bookingId,
+    language,
+    status: 'PROCESSING',
+    audioUrl: `https://drive.google.com/file/d/${driveFileId}/view`
+  });
+
+  try {
+    const file = await drive.files.get({ fileId: driveFileId, alt: 'media' }, { responseType: 'arraybuffer' });
+    const bytes = Buffer.from(file.data);
+    const model = new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const result = await model.generateContent([
+      { text: `Transcribe all spoken words accurately. The language is ${language}. Return only the transcript.` },
+      { inlineData: { data: bytes.toString('base64'), mimeType } }
+    ]);
+    const content = result.response.text().trim();
+    if (!content) throw new Error('Gemini returned an empty transcript');
+
+    return await upsertTranscript({
+      bookingId: meeting.bookingId,
+      content,
+      language,
+      status: 'READY',
+      audioUrl: `https://drive.google.com/file/d/${driveFileId}/view`
+    });
+  } catch (error) {
+    await upsertTranscript({ bookingId: meeting.bookingId, language, status: 'FAILED' });
+    throw error;
+  }
 };

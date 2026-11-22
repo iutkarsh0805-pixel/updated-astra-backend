@@ -131,9 +131,14 @@ export const reserveSlot = async (slotId, userId, transactionClient = null) => {
 // Get slots for authenticated user (customer or astrologer)
 export const getUserSlots = async (userId, role) => {
   if (role === 'ASTROLOGER') {
+    const astrologer = await prisma.astrologerProfile.findUnique({
+      where: { userId }
+    });
+    if (!astrologer) return [];
+
     return await prisma.slot.findMany({
-      where: { astrologerId: userId },
-      orderBy: { startTime: 'asc' }
+      where: { astrologerId: astrologer.id },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
     });
   }
 

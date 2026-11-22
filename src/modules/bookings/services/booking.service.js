@@ -1,89 +1,82 @@
 // Booking Service
 import { prisma } from '../../../lib/prisma.js';
-import { reserveSlot } from '../../slots/services/slot.service.js';
-import { createOrder } from '../../payments/services/payment.service.js';
+import { createOrder, refundPayment } from '../../payments/services/payment.service.js';
+import { scheduleBookingExpiration } from '../../../jobs/index.js';
 import { logger } from '../../../lib/logger.js';
+
+const slotStartsAt = (slot) => {
+  const date = slot.date.toISOString().slice(0, 10);
+  const time = String(slot.startTime).slice(0, 5);
+  return new Date(`${date}T${time}:00+05:30`);
+};
 
 // Create a booking
 export const createBooking = async (data) => {
-  return await prisma.$transaction(async (tx) => {
-    // Reserve the slot
-    const slot = await tx.slot.findUnique({
-      where: { id: data.slotId }
-    });
+  if (!data.slotId || !data.serviceId || !(data.customerId || data.userId)) {
+    throw new Error('Slot, service, and customer are required');
+  }
 
-    if (!slot) {
-      throw new Error('Slot not found');
-    }
+  const result = await prisma.$transaction(async (tx) => {
+    const [slot, service] = await Promise.all([
+      tx.slot.findUnique({ where: { id: data.slotId } }),
+      tx.service.findUnique({ where: { id: data.serviceId } })
+    ]);
 
-    if (new Date(slot.date) < new Date()) {
-      throw new Error('Cannot book past slot');
-    }
+    if (!slot) throw new Error('Slot not found');
+    if (!service) throw new Error('Service not found');
+    if (slotStartsAt(slot) <= new Date()) throw new Error('Cannot book past slot');
 
-    // Check if already booked
-    const existingBooking = await tx.booking.findFirst({
+    const serviceLink = await tx.astrologerService.findUnique({
       where: {
-        slotId: data.slotId,
-        OR: [
-          { status: 'PENDING' },
-          { status: 'CONFIRMED' }
-        ]
+        astrologerId_serviceId: {
+          astrologerId: slot.astrologerId,
+          serviceId: service.id
+        }
       }
     });
+    if (!serviceLink) throw new Error('Service is not offered by this astrologer');
 
-    if (existingBooking) {
-      throw new Error('Slot already booked');
-    }
-
-    // Validate service
-    if (!data.slotId || !data.serviceId) {
-      throw new Error('Slot and service are required');
-    }
-
-    const service = await tx.service.findUnique({
-      where: { id: data.serviceId }
+    const reservation = await tx.slot.updateMany({
+      where: { id: slot.id, status: 'AVAILABLE' },
+      data: { status: 'RESERVED' }
     });
+    if (reservation.count !== 1) throw new Error('Slot already booked');
 
-    if (!service) {
-      throw new Error('Service not found');
-    }
-
-    // Create booking
+    const amount = serviceLink.price ?? service.price;
     const booking = await tx.booking.create({
       data: {
         userId: data.customerId || data.userId,
-        serviceId: data.serviceId,
+        serviceId: service.id,
         astrologerId: slot.astrologerId,
-        slotId: data.slotId,
+        slotId: slot.id,
         status: 'PENDING',
         notes: data.notes || null
       }
     });
 
-    // Create payment order
-    const order = await createOrder(data.amount || service.price, 'INR', booking.id);
-
-    // Create payment record
-    await tx.payment.create({
+    const order = await createOrder(amount, 'INR', booking.id);
+    const payment = await tx.payment.create({
       data: {
         bookingId: booking.id,
-        userId: data.customerId || data.userId,
-        serviceId: data.serviceId,
+        userId: booking.userId,
+        serviceId: service.id,
         razorpayOrderId: order.id,
-        amount: data.amount || service.price,
+        amount,
         currency: 'INR',
         status: 'PENDING'
       }
     });
 
-    // Mark slot as unavailable
-    await tx.slot.update({
-      where: { id: data.slotId },
-      data: { status: 'RESERVED' }
-    });
-
-    return booking;
+    return { booking, payment };
   });
+
+  try {
+    await scheduleBookingExpiration(result.booking.id, result.payment.id);
+  } catch (error) {
+    logger.error('Failed to schedule booking expiration', { bookingId: result.booking.id, error: error.message });
+  }
+
+  return result.booking;
 };
 
 // Get booking by ID
@@ -111,7 +104,7 @@ export const getBooking = async (bookingId, userId, role) => {
           name: true
         }
       },
-      payments: true,
+      payment: true,
       meeting: true
     }
   });
@@ -127,7 +120,7 @@ export const getUserBookings = async (userId, role) => {
       orderBy: { createdAt: 'desc' },
       include: {
         slot: true,
-        payments: true
+        payment: true
       }
     });
   }
@@ -140,7 +133,7 @@ export const getUserBookings = async (userId, role) => {
       astrologer: {
         include: { user: true }
       },
-      payments: true
+      payment: true
     }
   });
 };
@@ -149,52 +142,77 @@ export const getUserBookings = async (userId, role) => {
 export const cancelBooking = async (bookingId, userId, reason = null) => {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { payments: true }
+    include: { payment: true }
   });
 
-  if (!booking) {
-    throw new Error('Booking not found');
-  }
+  if (!booking) throw new Error('Booking not found');
 
-  // Check authorization
   if (booking.userId !== userId) {
-    const astrologer = await prisma.astrologerProfile.findUnique({
-      where: { userId: userId }
-    });
+    const astrologer = await prisma.astrologerProfile.findUnique({ where: { userId } });
     if (!astrologer || booking.astrologerId !== astrologer.id) {
       throw new Error('Not authorized to cancel this booking');
     }
   }
 
-  // Check if cancellable
   if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
     throw new Error('Cannot cancel booking in current status');
   }
 
-  // Update booking status
-  const updatedBooking = await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: 'CANCELLED',
-      cancellationReason: reason
+  const result = await prisma.$transaction(async (tx) => {
+    const changed = await tx.booking.updateMany({
+      where: { id: bookingId, status: { in: ['PENDING', 'CONFIRMED'] } },
+      data: { status: 'CANCELLED', cancellationReason: reason }
+    });
+    if (changed.count !== 1) throw new Error('Cannot cancel booking in current status');
+
+    await tx.slot.updateMany({
+      where: { id: booking.slotId, status: { in: ['RESERVED', 'BOOKED'] } },
+      data: { status: 'AVAILABLE' }
+    });
+
+    let refund = null;
+    if (booking.payment?.status === 'PENDING') {
+      await tx.payment.update({ where: { id: booking.payment.id }, data: { status: 'FAILED' } });
+    } else if (booking.payment?.status === 'SUCCESS') {
+      refund = await tx.refund.create({
+        data: {
+          paymentId: booking.payment.id,
+          amount: booking.payment.amount,
+          currency: booking.payment.currency,
+          status: 'PENDING',
+          reason: reason || 'Booking cancelled'
+        }
+      });
+      await tx.payment.update({
+        where: { id: booking.payment.id },
+        data: { refundStatus: 'PENDING', refundAmount: booking.payment.amount }
+      });
     }
+
+    return { booking: await tx.booking.findUnique({ where: { id: bookingId } }), refund };
   });
 
-  // Process refund if payment is captured
-  const payment = booking.payments.find(p => p.status === 'SUCCESS');
-  if (payment) {
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: { status: 'REFUNDED' }
-    });
-
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: 'REFUNDED' }
-    });
+  if (result.refund && booking.payment?.razorpayPaymentId) {
+    try {
+      const providerRefund = await refundPayment(booking.payment.razorpayPaymentId, result.refund.amount);
+      await prisma.refund.update({
+        where: { id: result.refund.id },
+        data: { razorpayRefundId: providerRefund.id }
+      });
+    } catch (error) {
+      logger.error('Cancellation refund request failed', { bookingId, error: error.message });
+      await prisma.refund.update({
+        where: { id: result.refund.id },
+        data: { status: 'FAILED', errorMessage: error.message }
+      });
+      await prisma.payment.update({
+        where: { id: booking.payment.id },
+        data: { refundStatus: 'FAILED' }
+      });
+    }
   }
 
-  return updatedBooking;
+  return result.booking;
 };
 
 // Mark booking as complete
@@ -219,71 +237,56 @@ export const completeBooking = async (bookingId) => {
 
 // Reschedule booking
 export const rescheduleBooking = async (bookingId, newSlotId, userId) => {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: { slot: true }
-  });
+  return await prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+      include: { payment: true }
+    });
 
-  if (!booking) {
-    throw new Error('Booking not found');
-  }
-
-  if (booking.userId !== userId && booking.status === 'CANCELLED') {
-    throw new Error('Only the customer can reschedule');
-  }
-
-  // Check new slot availability
-  const newSlot = await prisma.slot.findUnique({
-    where: { id: newSlotId }
-  });
-
-  if (!newSlot || newSlot.status !== 'AVAILABLE') {
-    throw new Error('New slot is not available');
-  }
-
-  const newBookingDate = new Date();
-  if (new Date(newSlot.date) < newBookingDate) {
-    throw new Error('Cannot book past slot');
-  }
-
-  // Check for existing booking on new slot
-  const existingBooking = await prisma.booking.findFirst({
-    where: {
-      slotId: newSlotId,
-      OR: [
-        { status: 'PENDING' },
-        { status: 'CONFIRMED' },
-        { status: 'CONFIRMED' }
-      ]
+    if (!booking) throw new Error('Booking not found');
+    if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
+      throw new Error('Cannot reschedule booking in current status');
     }
-  });
 
-  if (existingBooking) {
-    throw new Error('New slot is already booked');
-  }
-
-  // Restore old slot availability
-  await prisma.slot.update({
-    where: { id: booking.slotId },
-    data: { status: 'AVAILABLE' }
-  });
-
-  // Update booking with new slot
-  const updatedBooking = await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      slotId: newSlotId,
-      astrologerId: newSlot.astrologerId,
-      status: 'PENDING',
-      notes: booking.notes
+    if (booking.userId !== userId) {
+      const astrologer = await tx.astrologerProfile.findUnique({ where: { userId } });
+      if (!astrologer || booking.astrologerId !== astrologer.id) {
+        throw new Error('Not authorized to reschedule this booking');
+      }
     }
-  });
 
-  // Mark new slot as unavailable
-  await prisma.slot.update({
-    where: { id: newSlotId },
-    data: { status: 'RESERVED' }
-  });
+    const newSlot = await tx.slot.findUnique({ where: { id: newSlotId } });
+    if (!newSlot) throw new Error('New slot not found');
+    if (slotStartsAt(newSlot) <= new Date()) throw new Error('Cannot book past slot');
 
-  return updatedBooking;
+    const serviceLink = await tx.astrologerService.findUnique({
+      where: {
+        astrologerId_serviceId: {
+          astrologerId: newSlot.astrologerId,
+          serviceId: booking.serviceId
+        }
+      }
+    });
+    if (!serviceLink) throw new Error('Service is not offered by the new astrologer');
+
+    const reservation = await tx.slot.updateMany({
+      where: { id: newSlotId, status: 'AVAILABLE' },
+      data: { status: booking.payment?.status === 'SUCCESS' ? 'BOOKED' : 'RESERVED' }
+    });
+    if (reservation.count !== 1) throw new Error('New slot is not available');
+
+    await tx.slot.updateMany({
+      where: { id: booking.slotId, status: { in: ['RESERVED', 'BOOKED'] } },
+      data: { status: 'AVAILABLE' }
+    });
+
+    return await tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        slotId: newSlotId,
+        astrologerId: newSlot.astrologerId,
+        status: booking.payment?.status === 'SUCCESS' ? 'CONFIRMED' : 'PENDING'
+      }
+    });
+  });
 };

@@ -1,6 +1,7 @@
 // Booking Controllers
 import { createBooking, getBooking, getUserBookings, cancelBooking, completeBooking, rescheduleBooking } from '../services/booking.service.js';
 import { prisma } from '../../../lib/prisma.js';
+import { logger } from '../../../lib/logger.js';
 
 export const createBookingController = async (req, res, next) => {
   try {
@@ -102,6 +103,11 @@ export const completeBookingController = async (req, res, next) => {
     }
 
     const updatedBooking = await completeBooking(req.params.id);
+
+    const { queueJob } = await import('../../../jobs/index.js');
+    await queueJob('generateReport', { bookingId: updatedBooking.id }).catch(error => {
+      logger.error('Failed to queue report generation', { bookingId: updatedBooking.id, error: error.message });
+    });
 
     res.json({
       success: true,

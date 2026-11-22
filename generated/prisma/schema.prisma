@@ -441,6 +441,17 @@ model SystemSettings {
   updatedAt DateTime @updatedAt
 }
 
+// Webhook Events
+model WebhookEvent {
+  id          String   @id @default(uuid())
+  eventId     String   @unique
+  eventType   String
+  processedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([eventType, createdAt])
+}
+
 // Enums
 
 enum UserRole {
