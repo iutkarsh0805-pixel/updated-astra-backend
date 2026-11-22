@@ -3,28 +3,12 @@ import { prisma } from '../../../lib/prisma.js';
 import { google } from 'googleapis';
 import { logger } from '../../../lib/logger.js';
 import crypto from 'crypto';
+import { encryptToken, decryptToken } from '../../../lib/token-encryption.js';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 const JWT_SECRET = process.env.JWT_SECRET;
-
-const tokenKey = crypto.createHash('sha256').update(JWT_SECRET || '').digest();
-const encryptToken = (token) => {
-  if (!token) return null;
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', tokenKey, iv);
-  const encrypted = Buffer.concat([cipher.update(token, 'utf8'), cipher.final()]);
-  return [iv, cipher.getAuthTag(), encrypted].map(part => part.toString('base64url')).join('.');
-};
-
-const decryptToken = (value) => {
-  if (!value) return null;
-  const [iv, tag, encrypted] = value.split('.').map(part => Buffer.from(part, 'base64url'));
-  const decipher = crypto.createDecipheriv('aes-256-gcm', tokenKey, iv);
-  decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
-};
 
 export const getOAuth2Client = (tokens = null) => {
   const client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);

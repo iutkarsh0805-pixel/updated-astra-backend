@@ -1,10 +1,11 @@
 import 'dotenv/config';
 
-const [{ default: app }, { logger }, { prisma }, { initializeJobs }] = await Promise.all([
+const [{ default: app }, { logger }, { prisma }, { initializeJobs }, { validateEncryptionKey }] = await Promise.all([
   import('./app.js'),
   import('./lib/logger.js'),
   import('./lib/prisma.js'),
-  import('./jobs/index.js')
+  import('./jobs/index.js'),
+  import('./lib/token-encryption.js')
 ]);
 
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,9 @@ const startServer = async () => {
     });
     process.exit(1);
   }
+
+  // Validate token encryption key
+  validateEncryptionKey();
 
   await initializeJobs();
 
