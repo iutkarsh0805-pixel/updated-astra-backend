@@ -4,6 +4,7 @@ import { google } from 'googleapis';
 import { logger } from '../../../lib/logger.js';
 import crypto from 'crypto';
 import { encryptToken, decryptToken } from '../../../lib/token-encryption.js';
+import { getOAuthClientForUser } from './google-token.service.js';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -13,40 +14,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export const getOAuth2Client = (tokens = null) => {
   const client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
   if (tokens) client.setCredentials(tokens);
-  return client;
-};
-
-export const getOAuthClientForUser = async (userId) => {
-  const account = await prisma.oAuthAccount.findFirst({
-    where: { userId, provider: 'GOOGLE' },
-    orderBy: { updatedAt: 'desc' }
-  });
-
-  if (!account?.refreshToken) {
-    throw new Error('Google Calendar account is not connected for this astrologer');
-  }
-
-  const client = getOAuth2Client({
-    access_token: decryptToken(account.accessToken),
-    refresh_token: decryptToken(account.refreshToken),
-    expiry_date: account.refreshTokenExpiresAt?.getTime()
-  });
-
-  client.on('tokens', async (tokens) => {
-    try {
-      await prisma.oAuthAccount.update({
-        where: { id: account.id },
-        data: {
-          accessToken: tokens.access_token ? encryptToken(tokens.access_token) : account.accessToken,
-          refreshToken: tokens.refresh_token ? encryptToken(tokens.refresh_token) : account.refreshToken,
-          refreshTokenExpiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : account.refreshTokenExpiresAt
-        }
-      });
-    } catch (error) {
-      logger.error('Failed to persist refreshed Google tokens', { error: error.message });
-    }
-  });
-
   return client;
 };
 
@@ -122,7 +89,8 @@ export const storeGoogleOAuthAccount = async (userId, result) => {
       refreshToken: refreshToken || existing?.refreshToken,
       refreshTokenExpiresAt: refreshTokenExpiresAt || existing?.refreshTokenExpiresAt,
       tokenType: result.token_type || existing?.tokenType,
-      scope: result.scope || existing?.scope
+      scope: result.scope || existing?.scope,
+      requiresReconnection: false
     },
     create: {
       userId,
@@ -132,7 +100,8 @@ export const storeGoogleOAuthAccount = async (userId, result) => {
       refreshToken,
       refreshTokenExpiresAt,
       tokenType: result.token_type || null,
-      scope: result.scope || null
+      scope: result.scope || null,
+      requiresReconnection: false
     }
   });
 };

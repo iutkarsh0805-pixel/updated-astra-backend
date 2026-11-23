@@ -4,7 +4,7 @@ import { logger } from '../../../lib/logger.js';
 import fs from 'node:fs/promises';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { google } from 'googleapis';
-import { getOAuthClientForUser } from '../../meetings/services/meeting.service.js';
+import { getOAuthClientForUser } from '../../meetings/services/google-token.service.js';
 
 // Get transcript for a meeting
 export const getTranscriptByMeeting = async (meetingId, userId, role) => {
